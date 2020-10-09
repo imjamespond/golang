@@ -12,3 +12,9 @@
 Go支持单元测试, 使用命名约定,testing包,``go test``命令.  
 1, 在greetings中增加一个以 _test.go结尾的文件.  
 2, in the greetings directory, run the ``go test -v`` command to execute the test
+
+## 编译和安装应用
+在hello中,``go list -f '{{.Target}}'``打印将安装到的路径  
+也可以自定安装路径, ``go env -w GOBIN=/path/to/your/bin``  
+一旦你更新了路径,run the ``go install`` command to compile and install the package.  
+Run your application by simply typing its name. ``$ hello``
