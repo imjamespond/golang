@@ -39,7 +39,7 @@ import (
 
 func main() {
 	manager := manage.NewDefaultManager()
-	// token memory store
+	// token memory store, POSIBLE LEAD TO MEMORY LEAKING!
 	manager.MustTokenStorage(store.NewMemoryTokenStore())
 
 	// client memory store
@@ -60,6 +60,7 @@ func main() {
 	manager.SetAuthorizeCodeTokenCfg(&manage.Config{
 		AccessTokenExp: 9000 * time.Second,
 	})
+	// manager.SetAuthorizeCodeExp(10 * time.Second)
 
 	srv := server.NewDefaultServer(manager)
 	srv.SetAllowGetAccessRequest(true)
