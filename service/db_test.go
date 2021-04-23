@@ -14,7 +14,7 @@ func now() *time.Time {
 }
 
 func TestMysqlCreate(t *testing.T) {
-	db := ConnectMysql()
+	db := ConnectToMysql()
 
 	// Migrate the schema
 	db.AutoMigrate(&model.User{})
@@ -31,7 +31,7 @@ func TestMysqlCreate(t *testing.T) {
 }
 
 func TestMysqlFind(t *testing.T) {
-	db := ConnectMysql()
+	db := ConnectToMysql()
 
 	var users []model.User
 	db.Find(&users)
@@ -39,7 +39,7 @@ func TestMysqlFind(t *testing.T) {
 }
 
 func TestMysqlScan(t *testing.T) {
-	db := ConnectMysql()
+	db := ConnectToMysql()
 
 	rows1, err := db.Table("users").Select("*").Rows()
 	if err != nil {

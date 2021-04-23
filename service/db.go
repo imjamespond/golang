@@ -5,7 +5,19 @@ import (
 	"gorm.io/gorm"
 )
 
-func ConnectMysql() *gorm.DB {
+var Db *gorm.DB
+
+func init() {
+	Db = ConnectToMysql()
+	sqlDB, err := Db.DB()
+	if err != nil {
+		panic(err)
+	}
+	sqlDB.SetMaxIdleConns(2)
+	sqlDB.SetMaxOpenConns(100)
+}
+
+func ConnectToMysql() *gorm.DB {
 	// refer https://github.com/go-sql-driver/mysql#dsn-data-source-name for details
 	// dsn := "root:my-secret-pw@tcp(test:3306)/test?charset=utf8mb4&parseTime=True&loc=Local"
 	// db, err := gorm.Open(mysql.Open(dsn), &gorm.Config{})
