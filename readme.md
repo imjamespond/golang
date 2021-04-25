@@ -7,3 +7,9 @@
 `` go test -timeout 30s -run ^TestMysql$ test-gin-auth/service ``
 # Build
 `` go build -o server``
+
+# Test clickhouse
+``` 
+$ docker run -d --name some-clickhouse-server -p 9000:9000 --ulimit nofile=262144:262144 --volume=/mnt/ch-data:/var/lib/clickhouse yandex/clickhouse-server 
+
+```
