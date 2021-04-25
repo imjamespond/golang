@@ -3,7 +3,6 @@ package main
 import (
 	"log"
 	"test-gin-auth/controller"
-	"test-gin-auth/service"
 
 	"github.com/gin-gonic/contrib/sessions"
 	"github.com/gin-gonic/gin"
@@ -13,8 +12,6 @@ import (
 // https://gist.github.com/otraore/4b3120aa70e1c1aa33ba78e886bb54f3
 
 func main() {
-
-	service.ConnectToMysql()
 
 	g := engine()
 	g.Use(gin.Logger())

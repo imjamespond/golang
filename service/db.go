@@ -1,23 +1,23 @@
 package service
 
 import (
+	"time"
+
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 )
 
-var Db *gorm.DB
+var __db__ *gorm.DB
 
-func init() {
-	Db = ConnectToMysql()
-	sqlDB, err := Db.DB()
-	if err != nil {
-		panic(err)
-	}
-	sqlDB.SetMaxIdleConns(2)
-	sqlDB.SetMaxOpenConns(100)
+func GetDB() *gorm.DB {
+	return __db__
 }
 
-func ConnectToMysql() *gorm.DB {
+func init() {
+	__db__ = connect()
+}
+
+func connect() *gorm.DB {
 	// refer https://github.com/go-sql-driver/mysql#dsn-data-source-name for details
 	// dsn := "root:my-secret-pw@tcp(test:3306)/test?charset=utf8mb4&parseTime=True&loc=Local"
 	// db, err := gorm.Open(mysql.Open(dsn), &gorm.Config{})
@@ -34,5 +34,15 @@ func ConnectToMysql() *gorm.DB {
 	if err != nil {
 		panic(err.Error())
 	}
+
+	sqlDB, err := db.DB()
+	if err != nil {
+		panic(err)
+	}
+	sqlDB.SetMaxIdleConns(2)
+	sqlDB.SetMaxOpenConns(100)
+	// SetConnMaxLifetime sets the maximum amount of time a connection may be reused.
+	sqlDB.SetConnMaxLifetime(time.Hour)
+
 	return db
 }

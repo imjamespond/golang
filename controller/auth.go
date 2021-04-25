@@ -74,7 +74,7 @@ func Logout(c *gin.Context) {
 
 func loginCheck(username string, password string) *model.User {
 	var user model.User
-	result := service.Db.Where(&model.User{Username: username}).First(&user)
+	result := service.GetDB().Where(&model.User{Username: username}).First(&user)
 	if result.Error == nil && password == user.Passwd {
 		return &user
 	}
