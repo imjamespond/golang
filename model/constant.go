@@ -1,6 +1,7 @@
 package model
 
 const (
-	Userkey = "user"
-	Version = "v1.7.1"
+	Userkey    = "user"
+	Expiredkey = "expired"
+	Version    = "v1.7.1"
 )

@@ -25,7 +25,11 @@ func main() {
 
 func engine() *gin.Engine {
 	g := gin.New()
-	g.Use(sessions.Sessions("mysession", sessions.NewCookieStore([]byte("secret"))))
+	cookieStore := sessions.NewCookieStore([]byte("secret"))
+	// cookieStore.Options(sessions.Options{
+	// 	MaxAge: 999999,
+	// })
+	g.Use(sessions.Sessions("mysession", cookieStore))
 	g.POST("/login", controller.Login)
 	g.GET("/logout", controller.Logout)
 	g.GET("/version", Version)

@@ -5,3 +5,5 @@
 驱动属性设置 "``AllowPublicKeyRetrieval=True``", 测试连接OK
 # Test
 `` go test -timeout 30s -run ^TestMysql$ test-gin-auth/service ``
+# Build
+`` go build -o server``
