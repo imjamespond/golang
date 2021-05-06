@@ -1,9 +1,11 @@
 package main
 
 import (
+	"crypto/ecdsa"
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"log"
 	"net/http"
 	"time"
@@ -20,12 +22,38 @@ import (
 
 const ServerPort = 8001
 
+var (
+	ecdsaPublicKey *ecdsa.PublicKey
+	// ecdsaPrivateKey *ecdsa.PrivateKey
+	privateKey []byte
+	publicKey  []byte
+)
+
+func init() {
+	var err error
+	privateKey, err = ioutil.ReadFile("./keypair/ec256-private.pem")
+	if err != nil {
+		panic(err.Error())
+	}
+	// if ecdsaPrivateKey, err = jwt.ParseECPrivateKeyFromPEM(privateKey); err != nil {
+	// 	panic(err.Error())
+	// }
+	publicKey, err = ioutil.ReadFile("./keypair/ec256-public.pem")
+	if err != nil {
+		panic(err.Error())
+	}
+	if ecdsaPublicKey, err = jwt.ParseECPublicKeyFromPEM(publicKey); err != nil {
+		panic(err.Error())
+	}
+}
+
 func main() {
 	// store auth code...
 	manager := manage.NewDefaultManager()
 	// manager.MustTokenStorage(NewDummyTokenStore())
 	manager.MustTokenStorage(store.NewMemoryTokenStore())
-	manager.MapAccessGenerate(generates.NewJWTAccessGenerate("SignedKeyID", []byte("SignedKey"), jwt.SigningMethodHS512))
+	// manager.MapAccessGenerate(generates.NewJWTAccessGenerate("SignedKeyID", []byte("SignedKey"), jwt.SigningMethodHS512))
+	manager.MapAccessGenerate(generates.NewJWTAccessGenerate("SignedKeyID", privateKey, jwt.SigningMethodES256))
 
 	// client memory store
 	client := models.Client{
@@ -96,10 +124,12 @@ func main() {
 
 		// Parse and verify jwt access token
 		token, err := jwt.ParseWithClaims(jwtToken, &generates.JWTAccessClaims{}, func(t *jwt.Token) (interface{}, error) {
-			if _, ok := t.Method.(*jwt.SigningMethodHMAC); !ok {
+			// if _, ok := t.Method.(*jwt.SigningMethodHMAC); !ok {
+			if _, ok := t.Method.(*jwt.SigningMethodECDSA); !ok {
 				return nil, fmt.Errorf("parse error")
 			}
-			return []byte("SignedKey"), nil
+			// return []byte("SignedKey"), nil
+			return ecdsaPublicKey, nil
 		})
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusBadRequest)
@@ -114,6 +144,7 @@ func main() {
 
 		data := map[string]interface{}{
 			"expires_in": int64(time.Until(time.Unix(claims.ExpiresAt, 0)).Seconds()),
+			"user_id":    claims.Subject,
 		}
 		e := json.NewEncoder(w)
 		e.SetIndent("", "  ")
