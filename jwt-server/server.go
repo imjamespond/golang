@@ -13,12 +13,19 @@ import (
 	"github.com/go-oauth2/oauth2/v4/models"
 	"github.com/go-oauth2/oauth2/v4/server"
 	"github.com/go-oauth2/oauth2/v4/store"
+
+	"github.com/dgrijalva/jwt-go"
+	"github.com/go-oauth2/oauth2/v4/generates"
 )
 
+const ServerPort = 8001
+
 func main() {
+	// store auth code...
 	manager := manage.NewDefaultManager()
-	// token memory store, POSIBLE LEAD TO MEMORY LEAKING!
+	// manager.MustTokenStorage(NewDummyTokenStore())
 	manager.MustTokenStorage(store.NewMemoryTokenStore())
+	manager.MapAccessGenerate(generates.NewJWTAccessGenerate("SignedKeyID", []byte("SignedKey"), jwt.SigningMethodHS512))
 
 	// client memory store
 	client := models.Client{
@@ -32,11 +39,12 @@ func main() {
 	clientStore.Set(client.GetID(), &client)
 	manager.MapClientStorage(clientStore)
 	manager.SetClientTokenCfg(&manage.Config{
-		AccessTokenExp: 30 * time.Second,
+		AccessTokenExp: 60 * time.Second,
 		// IsGenerateRefresh: false,
 	})
 	manager.SetAuthorizeCodeTokenCfg(&manage.Config{
-		AccessTokenExp: 9000 * time.Second,
+		AccessTokenExp:    9000 * time.Second,
+		IsGenerateRefresh: true,
 	})
 	// manager.SetAuthorizeCodeExp(10 * time.Second)
 
@@ -53,15 +61,20 @@ func main() {
 		log.Println("Response Error:", re.Error.Error())
 	})
 
-	// FIXME fake userId for auth-code
+	// In case requred by auth-code
 	srv.SetUserAuthorizationHandler(func(w http.ResponseWriter, r *http.Request) (userID string, err error) {
-		return "123", nil
+		log.Println("UserAuthorizationHandle")
+		return r.URL.Query().Get("userId"), nil
 	})
 
-	// case oauth2.PasswordCredentials
-	// srv.SetPasswordAuthorizationHandler(func(username, password string) (userID string, err error) {
+	// In case oauth2.PasswordCredentials（只有password才能取得useId并放入jwt token中）
+	srv.SetPasswordAuthorizationHandler(func(username, password string) (userID string, err error) {
+		return "123456", nil
+	})
 
 	http.HandleFunc("/authorize-code", func(w http.ResponseWriter, r *http.Request) {
+		// verify client domain by clientId, redirect_uri
+		// srv.ValidationAuthorizeRequest(r) 读出 RedirectURI...of AuthorizeRequest
 		err := srv.HandleAuthorizeRequest(w, r)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusBadRequest)
@@ -69,26 +82,43 @@ func main() {
 	})
 
 	http.HandleFunc("/token", func(w http.ResponseWriter, r *http.Request) {
+		// Manager.getAndDelAuthorizationCode verify the redirect_uri of code previously stored
 		srv.HandleTokenRequest(w, r)
 	})
 
 	http.HandleFunc("/test", func(w http.ResponseWriter, r *http.Request) {
 
-		token, err := srv.ValidationBearerToken(r)
+		jwtToken, ok := srv.BearerAuth(r)
+		if !ok {
+			http.Error(w, "no token", http.StatusBadRequest)
+			return
+		}
+
+		// Parse and verify jwt access token
+		token, err := jwt.ParseWithClaims(jwtToken, &generates.JWTAccessClaims{}, func(t *jwt.Token) (interface{}, error) {
+			if _, ok := t.Method.(*jwt.SigningMethodHMAC); !ok {
+				return nil, fmt.Errorf("parse error")
+			}
+			return []byte("SignedKey"), nil
+		})
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusBadRequest)
 			return
 		}
 
+		claims, ok := token.Claims.(*generates.JWTAccessClaims)
+		if !ok || !token.Valid {
+			http.Error(w, "invalid token", http.StatusBadRequest)
+			return
+		}
+
 		data := map[string]interface{}{
-			"expires_in": int64(time.Until(token.GetAccessCreateAt().Add(token.GetAccessExpiresIn())).Seconds()),
-			"client_id":  token.GetClientID(),
-			"user_id":    token.GetUserID(),
+			"expires_in": int64(time.Until(time.Unix(claims.ExpiresAt, 0)).Seconds()),
 		}
 		e := json.NewEncoder(w)
 		e.SetIndent("", "  ")
 		e.Encode(data)
 	})
 
-	log.Fatal(http.ListenAndServe(":8001", nil))
+	log.Fatal(http.ListenAndServe(fmt.Sprintf(":%d", ServerPort), nil))
 }
