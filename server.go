@@ -38,5 +38,9 @@ func engine() *gin.Engine {
 		private.GET("/me", controller.Me)
 		private.GET("/status", controller.Status)
 	}
+
+	g.GET("/test-oauth2/getToken", controller.OAuth2_GetToken)
+	g.Any("/oauth2/*any", controller.OAuth2_Proxy)
+
 	return g
 }
