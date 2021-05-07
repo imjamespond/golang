@@ -3,6 +3,6 @@
 # command-line-arguments
 jwt-server/server.go:25:27: undefined: NewDummyTokenStore
 ```
-`` go run jwt-server/server.go jwt-server/tokenStore.go ``  
-`` go build -o server jwt-server/*.go ``
+` go run jwt-server/server.go jwt-server/tokenStore.go `  
+` go build -o jwt-server/server jwt-server/*.go `
 
