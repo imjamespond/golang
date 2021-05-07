@@ -2,3 +2,4 @@
 node_modules
 dist
 __debug_bin
+test
