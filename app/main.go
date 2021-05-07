@@ -12,6 +12,13 @@ func main() {
 
 	fmt.Print(os.Args)
 
+	dev := flag.Bool("dev", false, "a bool")
+	flag.Parse()
+
+	if !*dev {
+		go StartWeb()
+	}
+
 	debug := true
 	w := webview.New(debug)
 	defer w.Destroy()
@@ -20,11 +27,9 @@ func main() {
 	w.SetTitle("Hello")
 
 	_, release := os.LookupEnv("RELEASE")
-	dev := flag.Bool("dev", false, "a bool")
-	flag.Parse()
-	url := "http://localhost:3000"
+	url := "http://localhost:9000/app"
 	if !*dev || release {
-		url = "https://bing.com"
+		url = "http://localhost:8080/app"
 	}
 	w.Navigate(url)
 	w.Run()
