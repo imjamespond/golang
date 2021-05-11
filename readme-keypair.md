@@ -7,8 +7,9 @@
 
 # [Sign and verify](https://github.com/dgrijalva/jwt-go/tree/master/cmd/jwt)  
 
-```
-go build -o jwt ${GOPATH}/pkg/mod/github.com/dgrijalva/jwt-go@v3.2.0+incompatible/cmd/jwt/*.go
+```shell
+go run github.com/dgrijalva/jwt-go/cmd/jwt
+# go build -o jwt ${GOPATH}/pkg/mod/github.com/dgrijalva/jwt-go@v3.2.0+incompatible/cmd/jwt/*.go
 echo {\"someone\":\"foobar\"} | \
 ./jwt -key ./keypair/ec256-private.pem -alg ES256 -sign - | \
 ./jwt -key ./keypair/ec256-public.pem  -alg ES256 -verify -
