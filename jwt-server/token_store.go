@@ -1,4 +1,4 @@
-package main
+package jwtserver
 
 import (
 	"context"

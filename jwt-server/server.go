@@ -1,4 +1,4 @@
-package main
+package jwtserver
 
 import (
 	"crypto/ecdsa"
@@ -23,6 +23,7 @@ import (
 const ServerPort = 8001
 
 var (
+	EcdsaPublicKey *ecdsa.PublicKey
 	ecdsaPublicKey *ecdsa.PublicKey
 	// ecdsaPrivateKey *ecdsa.PrivateKey
 	privateKey []byte
@@ -45,9 +46,10 @@ func init() {
 	if ecdsaPublicKey, err = jwt.ParseECPublicKeyFromPEM(publicKey); err != nil {
 		panic(err.Error())
 	}
+	EcdsaPublicKey = ecdsaPublicKey
 }
 
-func main() {
+func Start() {
 	// store auth code...
 	manager := manage.NewDefaultManager()
 	// manager.MustTokenStorage(NewDummyTokenStore())

@@ -1,4 +1,4 @@
-package main
+package jwtserver
 
 import (
 	"bytes"
@@ -50,10 +50,11 @@ func TestJWT(t *testing.T) {
 
 	// Parse and verify jwt access token
 	token, err := jwt.ParseWithClaims(data["access_token"].(string), &generates.JWTAccessClaims{}, func(t *jwt.Token) (interface{}, error) {
-		if _, ok := t.Method.(*jwt.SigningMethodHMAC); !ok {
+		if _, ok := t.Method.(*jwt.SigningMethodECDSA); !ok {
 			return nil, fmt.Errorf("parse error")
 		}
-		return []byte("SignedKey"), nil
+		// return []byte("SignedKeyID"), nil
+		return EcdsaPublicKey, nil
 	})
 	if err != nil {
 		log.Fatal(err.Error())
@@ -71,4 +72,8 @@ func TestJWT(t *testing.T) {
 		"user_id":    claims.Subject,
 	}
 	fmt.Println(rs)
+}
+
+func TestSRV(t *testing.T) {
+	Start()
 }
