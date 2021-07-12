@@ -2,5 +2,12 @@
   "qrcode": {
     "x": -43, "y": -497,
     "width": 201, "heigth": 201
+  },
+  "pdf": {
+    "width": 531, "height": 744,
+    "marginX": 71, "marginY": 71,
+    "pageW": 3780, "pageH": 5156,
+    "pageSize": 36,
+    "cols": 6
   }
 }

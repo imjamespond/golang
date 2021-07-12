@@ -1,0 +1,1 @@
+go build service/qrcode/remote/main.go -o generate

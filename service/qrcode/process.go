@@ -1,23 +1,19 @@
 package service_qrcode
 
 import (
-	"4d-qrcode/util"
 	"image"
 	"image/draw"
-	"image/jpeg"
+	_ "image/jpeg" // decode
+	"image/png"
 	"log"
 	"os"
 	"path/filepath"
 
+	"4d-qrcode/model"
+	"4d-qrcode/util"
+
 	"github.com/nfnt/resize"
 )
-
-var cfg = util.ParseConfig("./config.json")
-var qrcode = cfg["qrcode"].(map[string]interface{})
-var codeX = int(qrcode["x"].(float64))
-var codeY = int(qrcode["y"].(float64))
-var width = int(qrcode["width"].(float64))
-var heigth = int(qrcode["heigth"].(float64))
 
 func OpenJPEG(file string) *image.Image {
 	// Decode the JPEG data. If reading from file, create a reader with
@@ -36,19 +32,24 @@ func OpenJPEG(file string) *image.Image {
 
 type process_func func(_tpl *image.Image, _code *image.Image, codeName string)
 
-func Process(outputDir string) process_func {
+func Process(outputDir string, cfg *model.QRCodeConfig) process_func {
 	return func(_tpl *image.Image, _code *image.Image, codeName string) {
-		code := resize.Resize(uint(width), uint(heigth), *_code, resize.Lanczos3)
+		code := resize.Resize(uint(cfg.Width), uint(cfg.Heigth), *_code, resize.Lanczos3)
 		// tpl := resize.Resize(150, 0, *_tpl, resize.Lanczos3) //preserve aspect ratio
 		tpl := *_tpl
 
-		m := image.NewRGBA(tpl.Bounds())
-		draw.Draw(m, m.Bounds(), tpl, image.Point{0, 0}, draw.Src)
-		draw.Draw(m, m.Bounds(), code, image.Point{codeX, codeY}, draw.Src)
+		img := image.NewRGBA(tpl.Bounds())
+		draw.Draw(img, img.Bounds(), tpl, image.Point{0, 0}, draw.Src)
+		draw.Draw(img, img.Bounds(), code, image.Point{cfg.CodeX, cfg.CodeY}, draw.Src)
 
 		toimg, _ := os.Create(filepath.Join(outputDir, codeName))
 		defer toimg.Close()
 
-		jpeg.Encode(toimg, m, &jpeg.Options{Quality: jpeg.DefaultQuality})
+		// jpeg.Encode(toimg, img, &jpeg.Options{Quality: jpeg.DefaultQuality})
+		enc := &png.Encoder{
+			CompressionLevel: png.BestSpeed,
+		}
+		err := enc.Encode(toimg, img)
+		util.FatalIf(err)
 	}
 }

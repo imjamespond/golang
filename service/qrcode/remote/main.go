@@ -1,0 +1,55 @@
+package main
+
+import (
+	"flag"
+	"fmt"
+	"log"
+	"os"
+	"path/filepath"
+	"time"
+
+	"4d-qrcode/model"
+	pd "4d-qrcode/service/pdf"
+	qr "4d-qrcode/service/qrcode"
+	"4d-qrcode/util"
+)
+
+// 1,当前目录有config.json 2,传入template.jpg路径 3,template.jpg同目录有output目录
+
+var gen = flag.Bool("gen", false, "Download qrcode from aliyun and qenerate")
+
+func main() {
+	flag.Parse()
+
+	if len(os.Args) <= 1 {
+		log.Fatal("Please enter the template file!")
+	}
+
+	cfgPath, err := filepath.Abs("./config.json")
+	util.PanicIf(err)
+	cfg := util.ParseConfig(cfgPath)
+	qrcode := cfg["qrcode"].(map[string]interface{})
+
+	file := os.Args[1]
+	tpl := filepath.Join(filepath.Dir(file), "template.jpg")
+	outputDir := filepath.Join(filepath.Dir(file), "output")
+
+	before := time.Now()
+
+	if *gen {
+		links := qr.ReadLinks(file)
+		qrcodeCfg := model.GetQRCodeConfig(qrcode)
+		tplImg := qr.OpenJPEG(tpl)
+
+		for _, ln := range *links {
+			log.Println(ln)
+
+			img := qr.GetImage(ln)
+			qr.Process(outputDir, qrcodeCfg)(tplImg, img, filepath.Base(ln))
+		}
+	}
+
+	pd.RunPdfkit(cfgPath, filepath.Dir(file))
+
+	fmt.Printf("总共用时：%f 秒", time.Since(before).Seconds())
+}

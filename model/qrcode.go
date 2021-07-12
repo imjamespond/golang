@@ -1,12 +1,17 @@
 package model
 
-import (
-	"time"
-)
+type QRCodeConfig struct {
+	Width  int
+	Heigth int
+	CodeX  int
+	CodeY  int
+}
 
-type User struct {
-	ID         uint64     `gorm:"primaryKey"`
-	Username   string     `gorm:"uniqueIndex;not null"`
-	Passwd     string     `gorm:"not null"`
-	CreateDate *time.Time `gorm:"index:,sort:desc"` // pass by pointer if it's posible to be null
+func GetQRCodeConfig(cfg map[string]interface{}) *QRCodeConfig {
+	codeX := int(cfg["x"].(float64))
+	codeY := int(cfg["y"].(float64))
+	width := int(cfg["width"].(float64))
+	heigth := int(cfg["heigth"].(float64))
+
+	return &QRCodeConfig{Width: width, Heigth: heigth, CodeX: codeX, CodeY: codeY}
 }

@@ -9,8 +9,17 @@ import (
 	"strings"
 	"time"
 
+	"4d-qrcode/model"
 	qr "4d-qrcode/service/qrcode"
+	"4d-qrcode/util"
 )
+
+var cfg = util.ParseConfig("./config.json")
+var qrcode = cfg["qrcode"].(map[string]interface{})
+var codeX = int(qrcode["x"].(float64))
+var codeY = int(qrcode["y"].(float64))
+var width = int(qrcode["width"].(float64))
+var heigth = int(qrcode["heigth"].(float64))
 
 func main() {
 	if len(os.Args) <= 1 {
@@ -40,7 +49,8 @@ func main() {
 
 		// fmt.Println(file.Name(), file.IsDir(), ext)
 		log.Println(file.Name())
-		qr.Process(outputDir)(
+		cfg := model.QRCodeConfig{Width: width, Heigth: heigth, CodeX: codeX, CodeY: codeY}
+		qr.Process(outputDir, &cfg)(
 			qr.OpenJPEG(tpl),
 			qr.OpenJPEG(filepath.Join(codeDir, file.Name())),
 			filepath.Base(file.Name()))
