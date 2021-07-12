@@ -5,3 +5,5 @@ generate
 debug.test
 node_modules
 __debug_bin
+.DS_Store
+main
