@@ -6,6 +6,7 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"strings"
 	"time"
 
 	"4d-qrcode/model"
@@ -29,7 +30,9 @@ func main() {
 	nodeHomePath, err := filepath.Abs(*nodeHome)
 	util.PanicIf(err)
 	os.Setenv("NODE_HOME", nodeHomePath)
+	os.Setenv("PATH", strings.Join([]string{os.Getenv("PATH"), nodeHomePath}, string(os.PathListSeparator)))
 	log.Println(os.Getenv("NODE_HOME"))
+	log.Println(os.Getenv("PATH"))
 
 	cfgPath, err := filepath.Abs("./config.json")
 	util.PanicIf(err)
