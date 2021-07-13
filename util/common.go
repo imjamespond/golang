@@ -63,3 +63,11 @@ func ExecCmdDir(scan scan_func) exec_func {
 		return out
 	}
 }
+
+func IsDirectory(path string) (bool, error) {
+	fileInfo, err := os.Stat(path)
+	if err != nil {
+		return false, err
+	}
+	return fileInfo.IsDir(), err
+}
