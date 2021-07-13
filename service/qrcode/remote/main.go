@@ -18,7 +18,7 @@ import (
 // 1,当前目录有config.json 2,传入template.jpg路径 3,template.jpg同目录有output目录
 
 var gen = flag.Bool("gen", false, "Download qrcode from aliyun and qenerate")
-var nodeHome = flag.String("node_home", "../node", "node js home path")
+var nodeHome = flag.String("node_home", "./node", "node js home path")
 
 func main() {
 	flag.Parse()
@@ -29,10 +29,8 @@ func main() {
 
 	nodeHomePath, err := filepath.Abs(*nodeHome)
 	util.PanicIf(err)
-	os.Setenv("NODE_HOME", nodeHomePath)
 	os.Setenv("PATH", strings.Join([]string{os.Getenv("PATH"), nodeHomePath}, string(os.PathListSeparator)))
-	log.Println(os.Getenv("NODE_HOME"))
-	log.Println(os.Getenv("PATH"))
+	// log.Println(os.Getenv("PATH"))
 
 	cfgPath, err := filepath.Abs("./config.json")
 	util.PanicIf(err)
