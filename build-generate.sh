@@ -1,1 +1,1 @@
-go build -o generate service/qrcode/remote/main.go 
+go build -o generate.exe service/qrcode/remote/main.go 
