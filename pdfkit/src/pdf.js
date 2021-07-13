@@ -24,37 +24,37 @@ module.exports = function generate({ images, outputDir, cuttingImg, config } = {
       right: 0
     }
   });
-  // doc.pipe(fs.createWriteStream(path.join(outputDir, 'output.pdf')));
+  doc.pipe(fs.createWriteStream(path.join(outputDir, 'output.pdf')));
 
-  // // Embed a font, set the font size, and render some text
-  // // doc
-  // //   .font('fonts/PalatinoBold.ttf')
-  // //   .fontSize(25)
-  // //   .text('Some text with an embedded font!', 100, 100);
+  // Embed a font, set the font size, and render some text
+  // doc
+  //   .font('fonts/PalatinoBold.ttf')
+  //   .fontSize(25)
+  //   .text('Some text with an embedded font!', 100, 100);
 
-  // // Add an image, constrain it to a given size, and center it vertically and horizontally
+  // Add an image, constrain it to a given size, and center it vertically and horizontally
 
-  // images.forEach((img, i) => {
+  images.forEach((img, i) => {
 
-  //   const page = i % pageSize
-  //   if (page === 0 && i > 0) {
-  //     console.log('new page', i)
-  //     // Add another page
-  //     doc.addPage()
-  //   }
-  //   const row = Math.floor(page / cols)
-  //   const col = page % cols
-  //   // console.log(row, col, img)
-  //   var _ = doc.image(img, col * (width + marginX), row * (height + marginY), {
-  //     width, height,
-  //     // fit: [150, 200],
-  //     // align: 'center',
-  //     // valign: 'center' 
-  //   });
-  // })
+    const page = i % pageSize
+    if (page === 0 && i > 0) {
+      console.log('new page', i)
+      // Add another page
+      doc.addPage()
+    }
+    const row = Math.floor(page / cols)
+    const col = page % cols
+    // console.log(row, col, img)
+    var _ = doc.image(img, col * (width + marginX), row * (height + marginY), {
+      width, height,
+      // fit: [150, 200],
+      // align: 'center',
+      // valign: 'center' 
+    });
+  })
 
-  // // Finalize PDF file
-  // doc.end();
+  // Finalize PDF file
+  doc.end();
 
 
   // For cutting

@@ -17,6 +17,7 @@ import (
 // 1,当前目录有config.json 2,传入template.jpg路径 3,template.jpg同目录有output目录
 
 var gen = flag.Bool("gen", false, "Download qrcode from aliyun and qenerate")
+var nodeHome = flag.String("node_home", "../node", "node js home path")
 
 func main() {
 	flag.Parse()
@@ -24,6 +25,11 @@ func main() {
 	if len(os.Args) <= 1 {
 		log.Fatal("Please enter the template file!")
 	}
+
+	nodeHomePath, err := filepath.Abs(*nodeHome)
+	util.PanicIf(err)
+	os.Setenv("NODE_HOME", nodeHomePath)
+	log.Println(os.Getenv("NODE_HOME"))
 
 	cfgPath, err := filepath.Abs("./config.json")
 	util.PanicIf(err)
@@ -36,7 +42,7 @@ func main() {
 
 	before := time.Now()
 
-	if *gen {
+	if (bool)(*gen) {
 		links := qr.ReadLinks(file)
 		qrcodeCfg := model.GetQRCodeConfig(qrcode)
 		tplImg := qr.OpenJPEG(tpl)
