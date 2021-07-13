@@ -17,7 +17,7 @@ import (
 
 // 1,当前目录有config.json 2,传入template.jpg路径 3,template.jpg同目录有output目录
 
-var gen = flag.Bool("gen", false, "Download qrcode from aliyun and qenerate")
+var linksPath = flag.String("links", "", "Download qrcode images from links.txt")
 var nodeHome = flag.String("node_home", "./node", "node js home path")
 
 func main() {
@@ -37,14 +37,17 @@ func main() {
 	cfg := util.ParseConfig(cfgPath)
 	qrcode := cfg["qrcode"].(map[string]interface{})
 
-	file := os.Args[1]
-	tpl := filepath.Join(filepath.Dir(file), "template.jpg")
-	outputDir := filepath.Join(filepath.Dir(file), "output")
+	rootDir, err := filepath.Abs(os.Args[1])
+	util.PanicIf(err)
+	tpl := filepath.Join(filepath.Dir(rootDir), "template.jpg")
+	outputDir := filepath.Join(rootDir, "output")
+	util.ErrorIf(os.Mkdir(outputDir, 0755))
 
 	before := time.Now()
 
-	if (bool)(*gen) {
-		links := qr.ReadLinks(file)
+	// if (bool)(*gen) {
+	if len(*linksPath) > 0 {
+		links := qr.ReadLinks(rootDir)
 		qrcodeCfg := model.GetQRCodeConfig(qrcode)
 		tplImg := qr.OpenJPEG(tpl)
 
@@ -56,7 +59,7 @@ func main() {
 		}
 	}
 
-	pd.RunPdfkit(cfgPath, filepath.Dir(file))
+	pd.RunPdfkit(cfgPath, rootDir)
 
 	fmt.Printf("总共用时：%f 秒", time.Since(before).Seconds())
 }

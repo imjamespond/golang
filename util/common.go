@@ -21,6 +21,12 @@ func FatalIf(err error) {
 	}
 }
 
+func ErrorIf(err error) {
+	if err != nil {
+		log.Print(err)
+	}
+}
+
 func ExecCmd(command string) string {
 	return ExecCmdDir(nil)(command, nil)
 }
