@@ -17,7 +17,7 @@ import (
 
 // 1,当前目录有config.json 2,传入template.jpg路径 3,template.jpg同目录有output目录
 
-var linksPath = flag.String("links", "", "Download qrcode images from links.txt")
+var links = flag.String("links", "", "Download qrcode images from links.txt")
 var nodeHome = flag.String("node_home", "./node", "node js home path")
 
 func main() {
@@ -37,7 +37,7 @@ func main() {
 	cfg := util.ParseConfig(cfgPath)
 	qrcode := cfg["qrcode"].(map[string]interface{})
 
-	args1 := os.Args[1]
+	args1 := os.Args[len(os.Args)-1]
 	rootDir := args1
 	if isDir, _ := util.IsDirectory(args1); !isDir {
 		log.Println(args1, "isDir", isDir)
@@ -50,8 +50,10 @@ func main() {
 	before := time.Now()
 
 	// if (bool)(*gen) {
-	if len(*linksPath) > 0 {
-		links := qr.ReadLinks(*linksPath)
+	if len(*links) > 0 {
+		linksFile, err := filepath.Abs(*links)
+		util.PanicIf(err)
+		links := qr.ReadLinks(linksFile)
 		qrcodeCfg := model.GetQRCodeConfig(qrcode)
 		tplImg := qr.OpenJPEG(tpl)
 
