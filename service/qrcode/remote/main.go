@@ -51,7 +51,7 @@ func main() {
 
 	// if (bool)(*gen) {
 	if len(*linksPath) > 0 {
-		links := qr.ReadLinks(rootDir)
+		links := qr.ReadLinks(*linksPath)
 		qrcodeCfg := model.GetQRCodeConfig(qrcode)
 		tplImg := qr.OpenJPEG(tpl)
 
