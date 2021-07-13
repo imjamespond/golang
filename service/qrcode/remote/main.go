@@ -40,7 +40,7 @@ func main() {
 	args1 := os.Args[1]
 	var rootDir string = args1
 	if isDir, _ := util.IsDirectory(args1); !isDir {
-		log.Println(args1, " isDir ", isDir)
+		log.Println(args1, "isDir", isDir)
 		rootDir, err = filepath.Abs(args1)
 	}
 	util.PanicIf(err)
