@@ -39,11 +39,14 @@ func main() {
 	qrcode := cfg["qrcode"].(map[string]interface{})
 
 	args1 := os.Args[len(os.Args)-1]
-	rootDir := args1
+	var rootDir string
 	if isDir, err := util.IsDirectory(args1); !isDir {
 		util.FatalIf(err)
 		log.Println(args1, "isDir", isDir)
 		rootDir = filepath.Dir(args1)
+	} else {
+		rootDir, err = filepath.Abs(args1)
+		util.FatalIf(err)
 	}
 	tpl := filepath.Join(rootDir, "template.jpg")
 	outputDir := filepath.Join(rootDir, "output")
