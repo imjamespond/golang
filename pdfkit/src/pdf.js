@@ -7,14 +7,14 @@ module.exports = function generate({ images, outputDir, cuttingImg, config } = {
     width: _width, height: _height,
     pageW: _pageW, pageH: _pageH,
     paddingX = 0, paddingY = 0,
-    pageNumX: _pageNumX = 5, pageNumY: _pageNumY = 5, pageNumW: _pageNumW = 50, pageNumH: _pageNumH = 20, pageNumFontsize = 8,
+    pageNumX: _pageNumX = 5, pageNumY: _pageNumY = 5, pageNumFontsize = 8,
     marginX: mx, marginY: my, pageSize = 36, cols
   } = config.pdf
   const ratio = 72 / 300 // 72 dpi to 300
   const width = _width * ratio, height = _height * ratio
   const pageW = _pageW * ratio, pageH = _pageH * ratio
   const marginX = mx * ratio, marginY = my * ratio
-  const pageNumX = _pageNumX * ratio, pageNumY = _pageNumY * ratio, pageNumW = _pageNumW * ratio, pageNumH = _pageNumH * ratio
+  const pageNumX = _pageNumX * ratio, pageNumY = _pageNumY * ratio
   // Create a document
   // The size property can be either an array specifying [width, height] in PDF points (72 per inch), 
   // or a string specifying a predefined size. 
@@ -51,7 +51,7 @@ module.exports = function generate({ images, outputDir, cuttingImg, config } = {
       console.log('new page', pageNum)
       doc.fontSize(pageNumFontsize);
       doc.text(`${pageNum}`, pageNumX, pageNumY, {
-        width: pageNumW, height: pageNumH,
+        // width: pageNumW, height: pageNumH,
         align: 'left'
       });
     }
