@@ -7,7 +7,7 @@ module.exports = function generate({ images, outputDir, cuttingImg, config } = {
     width: _width, height: _height,
     pageW: _pageW, pageH: _pageH,
     paddingX = 0, paddingY = 0,
-    pageNumX: _pageNumX = 5, pageNumY: _pageNumY = 5, pageNumFontsize = 8, pageNumFont
+    pageNumX: _pageNumX = 5, pageNumY: _pageNumY = 5, pageNumFontsize = 8, pageNumFont = './simhei.ttf',
     marginX: mx, marginY: my, pageSize = 36, cols
   } = config.pdf
   const ratio = 72 / 300 // 72 dpi to 300
