@@ -7,7 +7,7 @@ module.exports = function generate({ images, outputDir, cuttingImg, config } = {
     width: _width, height: _height,
     pageW: _pageW, pageH: _pageH,
     paddingX = 0, paddingY = 0,
-    pageNumX = 0, pageNumY = 0, pageNumW = 50, pageNumH = 20,
+    pageNumX = 5, pageNumY = 5, pageNumW = 50, pageNumH = 20, pageNumFontsize = 8,
     marginX: mx, marginY: my, pageSize = 36, cols
   } = config.pdf
   const ratio = 72 / 300 // 72 dpi to 300
@@ -41,7 +41,7 @@ module.exports = function generate({ images, outputDir, cuttingImg, config } = {
     const page = i % pageSize
     if (page === 0) {
       console.log('new page', page)
-      doc.fontSize(8);
+      doc.fontSize(pageNumFontsize);
       doc.text(`${page}`, pageNumX, pageNumY, {
         width: pageNumW, height: pageNumH,
         align: 'left'
