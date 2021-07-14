@@ -46,15 +46,6 @@ module.exports = function generate({ images, outputDir, cuttingImg, config } = {
       // Add another page
       doc.addPage()
     }
-    if (page === 0) {
-      const pageNum = Math.floor(i / pageSize)
-      console.log('new page', pageNum)
-      doc.fontSize(pageNumFontsize);
-      doc.text(`${pageNum}`, pageNumX, pageNumY, {
-        // width: pageNumW, height: pageNumH,
-        align: 'left'
-      });
-    }
 
     const row = Math.floor(page / cols)
     const col = page % cols
@@ -65,6 +56,17 @@ module.exports = function generate({ images, outputDir, cuttingImg, config } = {
       // align: 'center',
       // valign: 'center' 
     });
+
+    // keep at the top
+    if (page === 0) {
+      const pageNum = Math.floor(i / pageSize)
+      console.log('pageNum', pageNum)
+      doc.fontSize(pageNumFontsize);
+      doc.text(`${pageNum}`, pageNumX, pageNumY, {
+        // width: pageNumW, height: pageNumH,
+        align: 'left'
+      });
+    }
   })
 
   // Finalize PDF file
