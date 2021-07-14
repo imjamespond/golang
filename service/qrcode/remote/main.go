@@ -92,7 +92,7 @@ func main() {
 			if strings.ToLower(ext) != ".jpg" && strings.ToLower(ext) != ".png" {
 				continue
 			}
-			img := qr.OpenJPEG(file.Name())
+			img := qr.OpenJPEG(filepath.Join(inputDir, file.Name()))
 			qr.Process(outputDir, qrcodeCfg)(tplImg, img, file.Name())
 		}
 	}
