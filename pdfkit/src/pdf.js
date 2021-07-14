@@ -7,7 +7,7 @@ module.exports = function generate({ images, outputDir, cuttingImg, config } = {
     width: _width, height: _height,
     pageW: _pageW, pageH: _pageH,
     paddingX = 0, paddingY = 0,
-    pageNumX: _pageNumX = 5, pageNumY: _pageNumY = 5, pageNumFontsize = 8,
+    pageNumX: _pageNumX = 5, pageNumY: _pageNumY = 5, pageNumFontsize = 8, pageNumFont
     marginX: mx, marginY: my, pageSize = 36, cols
   } = config.pdf
   const ratio = 72 / 300 // 72 dpi to 300
@@ -62,7 +62,7 @@ module.exports = function generate({ images, outputDir, cuttingImg, config } = {
       const pageNum = Math.floor(i / pageSize) + 1
       console.log('pageNum', pageNum)
       doc.fontSize(pageNumFontsize);
-      doc.text(`页码:${pad(pageNum, 3)}`, pageNumX, pageNumY, {
+      doc.font(pageNumFont).text(`页码:${pad(pageNum, 3)}`, pageNumX, pageNumY, {
         // width: pageNumW, height: pageNumH,
         align: 'left'
       });
