@@ -50,7 +50,9 @@ func ExecCmdDir(scan scan_func) exec_func {
 		PanicIf(err)
 		stderr, err := cmd.StderrPipe()
 		PanicIf(err)
-		cmd.Start()
+
+		FatalIf(cmd.Start())
+
 		cmd.Stdout = os.Stdout
 		cmd.Stderr = os.Stderr
 		scanner := bufio.NewScanner(stdout)
@@ -65,11 +67,9 @@ func ExecCmdDir(scan scan_func) exec_func {
 			}
 		}
 
-		slurp, _ := io.ReadAll(stderr)
-		if scan == nil {
-			fmt.Println(string(slurp))
-		} else {
-			scan(string(slurp))
+		slurp, err := io.ReadAll(stderr)
+		if err != nil || err != io.EOF {
+			fmt.Println(string("\033[31m"), string(slurp), string("\033[0m"))
 		}
 
 		FatalIf(cmd.Wait())
