@@ -19,6 +19,7 @@ import (
 
 var links = flag.String("links", "", "Download qrcode images from links.txt")
 var nodeHome = flag.String("node_home", "./node", "node js home path")
+var install = flag.Bool("init", false, "run npm install")
 
 func main() {
 	flag.Parse()
@@ -28,18 +29,19 @@ func main() {
 	}
 
 	nodeHomePath, err := filepath.Abs(*nodeHome)
-	util.PanicIf(err)
+	util.FatalIf(err)
 	os.Setenv("PATH", strings.Join([]string{os.Getenv("PATH"), nodeHomePath}, string(os.PathListSeparator)))
 	// log.Println(os.Getenv("PATH"))
 
 	cfgPath, err := filepath.Abs("./config.json")
-	util.PanicIf(err)
+	util.FatalIf(err)
 	cfg := util.ParseConfig(cfgPath)
 	qrcode := cfg["qrcode"].(map[string]interface{})
 
 	args1 := os.Args[len(os.Args)-1]
 	rootDir := args1
-	if isDir, _ := util.IsDirectory(args1); !isDir {
+	if isDir, err := util.IsDirectory(args1); !isDir {
+		util.FatalIf(err)
 		log.Println(args1, "isDir", isDir)
 		rootDir = filepath.Dir(args1)
 	}
@@ -49,10 +51,13 @@ func main() {
 
 	before := time.Now()
 
-	// if (bool)(*gen) {
+	if (bool)(*install) {
+		pd.RunInstall()
+	}
+
 	if len(*links) > 0 {
 		linksFile, err := filepath.Abs(*links)
-		util.PanicIf(err)
+		util.FatalIf(err)
 		links := qr.ReadLinks(linksFile)
 		qrcodeCfg := model.GetQRCodeConfig(qrcode)
 		tplImg := qr.OpenJPEG(tpl)

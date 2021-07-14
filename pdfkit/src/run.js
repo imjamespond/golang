@@ -43,7 +43,7 @@ fs.readdir(outputDir, (err, files) => {
   // log them on console
   const images = files
     .filter(file => {
-      if (file.indexOf('.png') > 0) {
+      if (file.toLowerCase().indexOf('.png') > 0 || file.toLowerCase().indexOf('.jpg') > 0) {
         // console.log(file);
         return true
       }

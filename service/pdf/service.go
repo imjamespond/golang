@@ -13,3 +13,10 @@ func RunPdfkit(configPath string, rootDir string) {
 		log.Println(str)
 	})(strings.Join(cmd, " "), &dir))
 }
+
+func RunInstall() {
+	dir := "./pdfkit"
+	log.Println(util.ExecCmdDir(func(str string) {
+		log.Println(str)
+	})(strings.Join([]string{"cnpm i"}, " "), &dir))
+}
