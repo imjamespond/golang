@@ -10,6 +10,8 @@ import (
 	"strings"
 	"time"
 
+	pb "github.com/cheggaaa/pb/v3"
+
 	"4d-qrcode/model"
 	pd "4d-qrcode/service/pdf"
 	qr "4d-qrcode/service/qrcode"
@@ -83,7 +85,10 @@ func main() {
 			log.Fatal(err)
 		}
 
+		bar := pb.StartNew(len(qrcodes))
 		for _, file := range qrcodes {
+			bar.Increment()
+
 			if file.IsDir() {
 				continue
 			}
@@ -95,6 +100,7 @@ func main() {
 			img := qr.OpenJPEG(filepath.Join(inputDir, file.Name()))
 			qr.Process(outputDir, qrcodeCfg)(tplImg, img, file.Name())
 		}
+		bar.Finish()
 	}
 
 	pd.RunPdfkit(cfgPath, rootDir)

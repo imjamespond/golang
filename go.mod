@@ -4,6 +4,7 @@ go 1.16
 
 require (
 	github.com/boj/redistore v0.0.0-20180917114910-cd5dcc76aeff // indirect
+	github.com/cheggaaa/pb/v3 v3.0.8
 	github.com/dsoprea/go-exif/v3 v3.0.0-20210625224831-a6301f85c82b // indirect
 	github.com/dsoprea/go-logging v0.0.0-20200710184922-b02d349568dd // indirect
 	github.com/gin-gonic/contrib v0.0.0-20201101042839-6a891bf89f19
