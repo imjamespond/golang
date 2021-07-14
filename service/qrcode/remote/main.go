@@ -3,6 +3,7 @@ package main
 import (
 	"flag"
 	"fmt"
+	"io/ioutil"
 	"log"
 	"os"
 	"path/filepath"
@@ -20,6 +21,7 @@ import (
 var links = flag.String("links", "", "Download qrcode images from links.txt")
 var nodeHome = flag.String("node_home", "./node", "node js home path")
 var install = flag.Bool("install", false, "run npm install")
+var gen = flag.Bool("gen", true, "generate qrcodes")
 
 func main() {
 	flag.Parse()
@@ -49,6 +51,8 @@ func main() {
 		util.FatalIf(err)
 	}
 	tpl := filepath.Join(rootDir, "template.jpg")
+	inputDir := filepath.Join(rootDir, "input")
+	util.ErrorIf(os.Mkdir(inputDir, 0755))
 	outputDir := filepath.Join(rootDir, "output")
 	util.ErrorIf(os.Mkdir(outputDir, 0755))
 
@@ -62,14 +66,34 @@ func main() {
 		linksFile, err := filepath.Abs(*links)
 		util.FatalIf(err)
 		links := qr.ReadLinks(linksFile)
-		qrcodeCfg := model.GetQRCodeConfig(qrcode)
-		tplImg := qr.OpenJPEG(tpl)
 
 		for _, ln := range *links {
 			log.Println(ln)
-
 			img := qr.GetImage(ln)
-			qr.Process(outputDir, qrcodeCfg)(tplImg, img, filepath.Base(ln))
+			qr.SaveImage(img, filepath.Join(inputDir, filepath.Base(ln)))
+		}
+	}
+
+	if (bool)(*gen) {
+		qrcodeCfg := model.GetQRCodeConfig(qrcode)
+		tplImg := qr.OpenJPEG(tpl)
+
+		qrcodes, err := ioutil.ReadDir(inputDir)
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		for _, file := range qrcodes {
+			if file.IsDir() {
+				continue
+			}
+			ext := filepath.Ext(file.Name())
+			ext = strings.ToLower(ext)
+			if strings.ToLower(ext) != ".jpg" && strings.ToLower(ext) != ".png" {
+				continue
+			}
+			img := qr.OpenJPEG(file.Name())
+			qr.Process(outputDir, qrcodeCfg)(tplImg, img, file.Name())
 		}
 	}
 

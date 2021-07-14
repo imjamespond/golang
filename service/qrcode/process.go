@@ -53,3 +53,15 @@ func Process(outputDir string, cfg *model.QRCodeConfig) process_func {
 		util.FatalIf(err)
 	}
 }
+
+func SaveImage(img *image.Image, imgFile string) {
+	toimg, _ := os.Create(imgFile)
+	defer toimg.Close()
+
+	// jpeg.Encode(toimg, img, &jpeg.Options{Quality: jpeg.DefaultQuality})
+	enc := &png.Encoder{
+		CompressionLevel: png.BestSpeed,
+	}
+	err := enc.Encode(toimg, *img)
+	util.FatalIf(err)
+}
