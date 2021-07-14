@@ -59,7 +59,7 @@ module.exports = function generate({ images, outputDir, cuttingImg, config } = {
 
     // keep at the top
     if (page === 0) {
-      const pageNum = Math.floor(i / pageSize)
+      const pageNum = Math.floor(i / pageSize) + 1
       console.log('pageNum', pageNum)
       doc.fontSize(pageNumFontsize);
       doc.text(`${pageNum}`, pageNumX, pageNumY, {
