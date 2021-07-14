@@ -40,15 +40,16 @@ module.exports = function generate({ images, outputDir, cuttingImg, config } = {
 
     const page = i % pageSize
     if (page === 0) {
-      console.log('new page', page)
+      const pageNum = Math.floor(i / pageSize)
+      console.log('new page', pageNum)
       doc.fontSize(pageNumFontsize);
-      doc.text(`${page}`, pageNumX, pageNumY, {
+      doc.text(`${pageNum}`, pageNumX, pageNumY, {
         width: pageNumW, height: pageNumH,
         align: 'left'
       });
     }
     if (page === 0 && i > 0) {
-      console.log('new pdf page', page)
+      console.log('new pdf page', i)
       // Add another page
       doc.addPage()
     }
