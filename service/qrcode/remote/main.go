@@ -8,6 +8,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"sync"
 	"time"
 
 	pb "github.com/cheggaaa/pb/v3"
@@ -64,23 +65,34 @@ func main() {
 		pd.RunInstall()
 	}
 
-	jobs := make(chan string)
-	for i := 0; i < 8; i++ {
-		go func() {
-			ln := <-jobs
-			log.Println(ln)
-			img := qr.GetImage(ln)
-			qr.SaveImage(img, filepath.Join(inputDir, filepath.Base(ln)))
-		}()
-	}
 	if len(*links) > 0 {
+		var wg sync.WaitGroup
+		jobs := make(chan string)
+		for i := 0; i < 8; i++ {
+			go func(ii int) {
+				for {
+					ln, ok := <-jobs
+					if !ok {
+						log.Println("stop goroutine", ii)
+						return
+					}
+					log.Println(ln)
+					img := qr.GetImage(ln)
+					qr.SaveImage(img, filepath.Join(inputDir, filepath.Base(ln)))
+					wg.Done()
+				}
+			}(i)
+		}
+
 		linksFile, err := filepath.Abs(*links)
 		util.FatalIf(err)
 		links := qr.ReadLinks(linksFile)
-
 		for _, ln := range *links {
+			wg.Add(1)
 			jobs <- ln
 		}
+		wg.Wait()
+		close(jobs)
 	}
 
 	if (bool)(*gen) {
