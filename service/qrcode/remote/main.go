@@ -47,7 +47,7 @@ func main() {
 	}
 	tpl := filepath.Join(rootDir, "template.jpg")
 	outputDir := filepath.Join(rootDir, "output")
-	// util.ErrorIf(os.Mkdir(outputDir, 0755))
+	util.ErrorIf(os.Mkdir(outputDir, 0755))
 
 	before := time.Now()
 

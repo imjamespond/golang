@@ -6,6 +6,8 @@ module.exports = function generate({ images, outputDir, cuttingImg, config } = {
   const {
     width: _width, height: _height,
     pageW: _pageW, pageH: _pageH,
+    paddingX = 0, paddingY = 0,
+    pageNumX = 0, pageNumY = 0, pageNumW = 50, pageNumH = 20,
     marginX: mx, marginY: my, pageSize = 36, cols
   } = config.pdf
   const ratio = 72 / 300 // 72 dpi to 300
@@ -37,15 +39,23 @@ module.exports = function generate({ images, outputDir, cuttingImg, config } = {
   images.forEach((img, i) => {
 
     const page = i % pageSize
+    if (page === 0) {
+      console.log('new page', page)
+      doc.fontSize(8);
+      doc.text(`${page}`, pageNumX, pageNumY, {
+        width: pageNumW, height: pageNumH,
+        align: 'left'
+      });
+    }
     if (page === 0 && i > 0) {
-      console.log('new page', i)
+      console.log('new pdf page', page)
       // Add another page
       doc.addPage()
     }
     const row = Math.floor(page / cols)
     const col = page % cols
     // console.log(row, col, img)
-    var _ = doc.image(img, col * (width + marginX), row * (height + marginY), {
+    var _ = doc.image(img, col * (width + marginX) + paddingX, row * (height + marginY) + paddingY, {
       width, height,
       // fit: [150, 200],
       // align: 'center',
