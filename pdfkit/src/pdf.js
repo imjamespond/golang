@@ -62,7 +62,7 @@ module.exports = function generate({ images, outputDir, cuttingImg, config } = {
       const pageNum = Math.floor(i / pageSize) + 1
       console.log('pageNum', pageNum)
       doc.fontSize(pageNumFontsize);
-      doc.text(`${pageNum}`, pageNumX, pageNumY, {
+      doc.text(`页码:${pad(pageNum, 3)}`, pageNumX, pageNumY, {
         // width: pageNumW, height: pageNumH,
         align: 'left'
       });
@@ -95,3 +95,11 @@ module.exports = function generate({ images, outputDir, cuttingImg, config } = {
   cutting.end();
 }
 
+function pad(number, length) {
+  var str = '' + number;
+  while (str.length < length) {
+    str = '0' + str;
+  }
+  return str;
+
+}
