@@ -19,7 +19,7 @@ import (
 
 var links = flag.String("links", "", "Download qrcode images from links.txt")
 var nodeHome = flag.String("node_home", "./node", "node js home path")
-var install = flag.Bool("init", false, "run npm install")
+var install = flag.Bool("install", false, "run npm install")
 
 func main() {
 	flag.Parse()
