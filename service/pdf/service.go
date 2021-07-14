@@ -9,14 +9,14 @@ import (
 func RunPdfkit(configPath string, rootDir string) {
 	dir := "./pdfkit"
 	cmd := []string{"node src/run.js", configPath, rootDir}
-	log.Println(util.ExecCmdDir(func(str string) {
+	util.ExecCmdDir(func(str string) {
 		log.Println(str)
-	})(strings.Join(cmd, " "), &dir))
+	})(strings.Join(cmd, " "), &dir)
 }
 
 func RunInstall() {
 	dir := "./pdfkit"
-	log.Println(util.ExecCmdDir(func(str string) {
+	util.ExecCmdDir(func(str string) {
 		log.Println(str)
-	})(strings.Join([]string{"cnpm i"}, " "), &dir))
+	})(strings.Join([]string{"cnpm i"}, " "), &dir)
 }

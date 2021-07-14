@@ -3,6 +3,7 @@ package util
 import (
 	"bufio"
 	"fmt"
+	"io"
 	"log"
 	"os"
 	"os/exec"
@@ -45,9 +46,13 @@ func ExecCmdDir(scan scan_func) exec_func {
 		// out, err := cmd.Output()
 		// PanicIf(err)
 
-		stdout, _ := cmd.StdoutPipe()
+		stdout, err := cmd.StdoutPipe()
+		PanicIf(err)
+		stderr, err := cmd.StderrPipe()
+		PanicIf(err)
 		cmd.Start()
 		cmd.Stdout = os.Stdout
+		cmd.Stderr = os.Stderr
 		scanner := bufio.NewScanner(stdout)
 		var out string
 		for scanner.Scan() {
@@ -59,7 +64,15 @@ func ExecCmdDir(scan scan_func) exec_func {
 				scan(m)
 			}
 		}
-		cmd.Wait()
+
+		slurp, _ := io.ReadAll(stderr)
+		if scan == nil {
+			fmt.Println(string(slurp))
+		} else {
+			scan(string(slurp))
+		}
+
+		FatalIf(cmd.Wait())
 		return out
 	}
 }
