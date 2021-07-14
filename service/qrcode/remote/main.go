@@ -64,15 +64,22 @@ func main() {
 		pd.RunInstall()
 	}
 
+	jobs := make(chan string)
+	for i := 0; i < 8; i++ {
+		go func() {
+			ln := <-jobs
+			log.Println(ln)
+			img := qr.GetImage(ln)
+			qr.SaveImage(img, filepath.Join(inputDir, filepath.Base(ln)))
+		}()
+	}
 	if len(*links) > 0 {
 		linksFile, err := filepath.Abs(*links)
 		util.FatalIf(err)
 		links := qr.ReadLinks(linksFile)
 
 		for _, ln := range *links {
-			log.Println(ln)
-			img := qr.GetImage(ln)
-			qr.SaveImage(img, filepath.Join(inputDir, filepath.Base(ln)))
+			jobs <- ln
 		}
 	}
 
