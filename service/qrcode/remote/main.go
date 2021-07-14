@@ -76,7 +76,7 @@ func main() {
 						log.Println("stop goroutine", ii)
 						return
 					}
-					log.Println(ln)
+					log.Println(ii, "->", ln)
 					img := qr.GetImage(ln)
 					qr.SaveImage(img, filepath.Join(inputDir, filepath.Base(ln)))
 					wg.Done()
