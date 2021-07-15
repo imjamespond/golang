@@ -111,6 +111,7 @@ func main() {
 		var wgMain sync.WaitGroup
 		genImgJobs := make(chan *GenImg)
 		bar := pb.Default(int64(len(qrcodes)), "生成二维码中")
+		wg.Add(len(qrcodes))
 		wgMain.Add(threadNum)
 		for i := 0; i < threadNum; i++ {
 			go func(ii int) {
