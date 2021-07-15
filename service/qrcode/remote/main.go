@@ -12,7 +12,7 @@ import (
 	"sync"
 	"time"
 
-	pb "github.com/schollz/progressbar/v3"
+	pb "github.com/cheggaaa/pb/v3"
 
 	"4d-qrcode/model"
 	pd "4d-qrcode/service/pdf"
@@ -110,7 +110,7 @@ func main() {
 		var wg sync.WaitGroup
 		var wgMain sync.WaitGroup
 		genImgJobs := make(chan *GenImg)
-		bar := pb.Default(int64(len(qrcodes)), "生成二维码中")
+		bar := pb.StartNew(len(qrcodes))
 		wg.Add(len(qrcodes))
 		wgMain.Add(threadNum)
 		for i := 0; i < threadNum; i++ {
@@ -146,6 +146,7 @@ func main() {
 		wg.Wait()
 		close(genImgJobs)
 		wgMain.Wait()
+		bar.Finish()
 	}
 
 	pd.RunPdfkit(cfgPath, rootDir)
