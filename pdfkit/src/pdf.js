@@ -17,7 +17,7 @@ module.exports = function generate({ images, outputDir, cuttingImg, config } = {
   const marginX = mx * ratio, marginY = my * ratio
   const pageNumX = _pageNumX * ratio, pageNumY = _pageNumY * ratio
 
-  function _func(images) {
+  function _func(images, pdfNum) {
     // Create a document
     // The size property can be either an array specifying [width, height] in PDF points (72 per inch), 
     // or a string specifying a predefined size. 
@@ -30,7 +30,7 @@ module.exports = function generate({ images, outputDir, cuttingImg, config } = {
         right: 0
       }
     });
-    doc.pipe(fs.createWriteStream(path.join(outputDir, 'output.pdf')));
+    doc.pipe(fs.createWriteStream(path.join(outputDir, `output-${pdfNum}.pdf`)));
 
     // Embed a font, set the font size, and render some text
     // doc
@@ -75,8 +75,9 @@ module.exports = function generate({ images, outputDir, cuttingImg, config } = {
     // Finalize PDF file
     doc.end();
   }
+  let pdfNum = 0
   while (images.length > 0) {
-    _func(images.splice(0, size))
+    _func(images.splice(0, size), ++pdfNum)
   }
 
 

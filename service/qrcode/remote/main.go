@@ -118,7 +118,6 @@ func main() {
 				for {
 					job, ok := <-genImgJobs
 					if !ok {
-						log.Println("stop goroutine", ii)
 						wgMain.Done()
 						return
 					}
