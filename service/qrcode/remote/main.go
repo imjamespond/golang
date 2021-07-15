@@ -3,6 +3,7 @@ package main
 import (
 	"flag"
 	"fmt"
+	"image"
 	"io/ioutil"
 	"log"
 	"os"
@@ -11,13 +12,15 @@ import (
 	"sync"
 	"time"
 
-	pb "github.com/cheggaaa/pb/v3"
+	pb "github.com/schollz/progressbar/v3"
 
 	"4d-qrcode/model"
 	pd "4d-qrcode/service/pdf"
 	qr "4d-qrcode/service/qrcode"
 	"4d-qrcode/util"
 )
+
+const threadNum = 8
 
 // 1,当前目录有config.json 2,传入template.jpg路径 3,template.jpg同目录有output目录
 
@@ -68,7 +71,7 @@ func main() {
 	if len(*links) > 0 {
 		var wg sync.WaitGroup
 		jobs := make(chan string)
-		for i := 0; i < 8; i++ {
+		for i := 0; i < threadNum; i++ {
 			go func(ii int) {
 				for {
 					ln, ok := <-jobs
@@ -104,25 +107,51 @@ func main() {
 			log.Fatal(err)
 		}
 
-		bar := pb.StartNew(len(qrcodes))
+		var wg sync.WaitGroup
+		var wgMain sync.WaitGroup
+		genImgJobs := make(chan *GenImg)
+		bar := pb.Default(int64(len(qrcodes)), "生成二维码中")
 		for _, file := range qrcodes {
-			bar.Increment()
-
 			if file.IsDir() {
 				continue
 			}
 			ext := filepath.Ext(file.Name())
 			ext = strings.ToLower(ext)
-			if strings.ToLower(ext) != ".jpg" && strings.ToLower(ext) != ".png" {
+			if ext != ".jpg" && ext != ".png" {
 				continue
 			}
 			img := qr.OpenJPEG(filepath.Join(inputDir, file.Name()))
-			qr.Process(outputDir, qrcodeCfg)(tplImg, img, file.Name())
+			// qr.Process(outputDir, qrcodeCfg)(tplImg, img, file.Name())
+			gi := GenImg{img: img, file: file.Name()}
+			genImgJobs <- &gi
 		}
-		bar.Finish()
+		wgMain.Add(threadNum)
+		for i := 0; i < threadNum; i++ {
+			go func(ii int) {
+				for {
+					job, ok := <-genImgJobs
+					if !ok {
+						log.Println("stop goroutine", ii)
+						wgMain.Done()
+						return
+					}
+					qr.Process(outputDir, qrcodeCfg)(tplImg, job.img, job.file)
+					bar.Add(1)
+					wg.Done()
+				}
+			}(i)
+		}
+		wg.Wait()
+		close(genImgJobs)
+		wgMain.Wait()
 	}
 
 	pd.RunPdfkit(cfgPath, rootDir)
 
 	fmt.Printf("总共用时：%f 秒", time.Since(before).Seconds())
+}
+
+type GenImg struct {
+	img  *image.Image
+	file string
 }
