@@ -111,20 +111,6 @@ func main() {
 		var wgMain sync.WaitGroup
 		genImgJobs := make(chan *GenImg)
 		bar := pb.Default(int64(len(qrcodes)), "生成二维码中")
-		for _, file := range qrcodes {
-			if file.IsDir() {
-				continue
-			}
-			ext := filepath.Ext(file.Name())
-			ext = strings.ToLower(ext)
-			if ext != ".jpg" && ext != ".png" {
-				continue
-			}
-			img := qr.OpenJPEG(filepath.Join(inputDir, file.Name()))
-			// qr.Process(outputDir, qrcodeCfg)(tplImg, img, file.Name())
-			gi := GenImg{img: img, file: file.Name()}
-			genImgJobs <- &gi
-		}
 		wgMain.Add(threadNum)
 		for i := 0; i < threadNum; i++ {
 			go func(ii int) {
@@ -141,6 +127,21 @@ func main() {
 				}
 			}(i)
 		}
+		for _, file := range qrcodes {
+			if file.IsDir() {
+				continue
+			}
+			ext := filepath.Ext(file.Name())
+			ext = strings.ToLower(ext)
+			if ext != ".jpg" && ext != ".png" {
+				continue
+			}
+			img := qr.OpenJPEG(filepath.Join(inputDir, file.Name()))
+			// qr.Process(outputDir, qrcodeCfg)(tplImg, img, file.Name())
+			gi := GenImg{img: img, file: file.Name()}
+			genImgJobs <- &gi
+		}
+
 		wg.Wait()
 		close(genImgJobs)
 		wgMain.Wait()
