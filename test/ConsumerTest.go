@@ -21,7 +21,7 @@ func ConsumerTest() {
 		}
 	}()
 
-	partitionConsumer, err := consumer.ConsumePartition(Topic, 0, sarama.OffsetOldest) //OffsetNewest
+	partitionConsumer, err := consumer.ConsumePartition(Topic, 0, sarama.OffsetNewest) //OffsetNewest OffsetOldest
 	if err != nil {
 		panic(err)
 	}
