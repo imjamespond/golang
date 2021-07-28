@@ -5,7 +5,10 @@ import (
 	"os"
 
 	"github.com/go-kit/kit/log"
+	kitprometheus "github.com/go-kit/kit/metrics/prometheus"
 	httptransport "github.com/go-kit/kit/transport/http"
+	stdprometheus "github.com/prometheus/client_golang/prometheus"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 
 	"test-etcd/test/strsvc/endpoint"
 	"test-etcd/test/strsvc/middleware"
@@ -46,6 +49,21 @@ func main() {
 	ep := mw(endpoint.MakeTestEndpoint(service.CallTest))
 	mw = middleware.TestLoggingMiddleware(log.With(logger, "method", "test2"))
 	ep = mw(ep)
+	fieldKeys := []string{"method", "error"}
+	requestCount := kitprometheus.NewCounterFrom(stdprometheus.CounterOpts{
+		Namespace: "my_group",
+		Subsystem: "string_service",
+		Name:      "request_count",
+		Help:      "Number of requests received.",
+	}, fieldKeys)
+	requestLatency := kitprometheus.NewSummaryFrom(stdprometheus.SummaryOpts{
+		Namespace: "my_group",
+		Subsystem: "string_service",
+		Name:      "request_latency_microseconds",
+		Help:      "Total duration of requests in microseconds.",
+	}, fieldKeys)
+	mw = middleware.InstrumentingMiddleware(requestCount, requestLatency)
+	ep = mw(ep)
 	testHandler := httptransport.NewServer(
 		ep,
 		util.DecodeRequest(),
@@ -56,5 +74,6 @@ func main() {
 	http.Handle("/count", countHandler)
 	http.Handle("/foobar", foobarHandler)
 	http.Handle("/test", testHandler)
+	http.Handle("/metrics", promhttp.Handler())
 	logger.Log(http.ListenAndServe(":8080", nil))
 }
