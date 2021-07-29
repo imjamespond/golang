@@ -6,7 +6,9 @@ require (
 	codechiev/utils v0.0.0-00010101000000-000000000000
 	github.com/go-kit/kit v0.11.0
 	github.com/prometheus/client_golang v1.11.0
+	github.com/sony/gobreaker v0.4.1 // indirect
 	go.uber.org/zap v1.18.1 // indirect
+	golang.org/x/time v0.0.0-20210723032227-1f47c861a9ac
 	google.golang.org/grpc v1.39.0
 )
 

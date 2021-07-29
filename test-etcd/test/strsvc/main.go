@@ -4,6 +4,7 @@ import (
 	"net/http"
 	"os"
 
+	gkEndpoint "github.com/go-kit/kit/endpoint"
 	"github.com/go-kit/kit/log"
 	kitprometheus "github.com/go-kit/kit/metrics/prometheus"
 	httptransport "github.com/go-kit/kit/transport/http"
@@ -45,8 +46,10 @@ func main() {
 		util.EncodeResponse(),
 	)
 
+	var ep gkEndpoint.Endpoint
 	mw := middleware.TestLoggingMiddleware(log.With(logger, "method", "test1"))
-	ep := mw(endpoint.MakeTestEndpoint(service.CallTest))
+	// ep := mw(endpoint.MakeTestEndpoint(service.CallTest))
+	ep = mw(middleware.TestRetryMiddleware()(ep))
 	mw = middleware.TestLoggingMiddleware(log.With(logger, "method", "test2"))
 	ep = mw(ep)
 	fieldKeys := []string{"method", "error"}

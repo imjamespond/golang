@@ -49,13 +49,3 @@ func MakeEndpoint(svc service.Service) endpoint.Endpoint {
 		return model.Response{V: v, Err: ""}, nil
 	}
 }
-
-func MakeTestEndpoint(test service.Test) endpoint.Endpoint {
-	return func(ctx context.Context, request interface{}) (interface{}, error) {
-		v, err := test(request.(model.Request))
-		if err != nil {
-			return model.Response{V: v, Err: err.Error()}, nil
-		}
-		return model.Response{V: "test", Err: ""}, nil
-	}
-}
