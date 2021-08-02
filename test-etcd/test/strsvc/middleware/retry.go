@@ -2,9 +2,13 @@ package middleware
 
 import (
 	"codechiev/utils"
+	"context"
+	"errors"
+	"io/ioutil"
+	"net/http"
 	"net/url"
-	makeEndpoint "test-etcd/test/strsvc/endpoint"
 	"test-etcd/test/strsvc/model"
+	"test-etcd/test/strsvc/service"
 	"time"
 
 	"github.com/go-kit/kit/circuitbreaker"
@@ -14,15 +18,19 @@ import (
 	"github.com/go-kit/kit/sd/lb"
 	"github.com/sony/gobreaker"
 	"golang.org/x/time/rate"
+
+	// "golang.org/x/time/rate"
+	httptransport "github.com/go-kit/kit/transport/http"
+	jujuratelimit "github.com/juju/ratelimit"
 )
 
 func TestRetryMiddleware() model.Middleware {
 
 	// Set some parameters for our client.
 	var (
-		qps         = 1                      // beyond which we will return an error
-		maxAttempts = 3                      // per request, before giving up
-		maxTime     = 250 * time.Millisecond // wallclock time, before giving up
+		qps         = 1                // beyond which we will return an error
+		maxAttempts = 5                // per request, before giving up
+		maxTime     = 10 * time.Second // wallclock time, before giving up
 	)
 
 	// Otherwise, construct an endpoint for each instance in the list, and add
@@ -38,9 +46,12 @@ func TestRetryMiddleware() model.Middleware {
 		_url, err := url.Parse(instance)
 		utils.PanicIf(err)
 		var e endpoint.Endpoint
-		e = makeEndpoint.MakeTestProxyEndpoint(_url)
+		e = MakeTestProxyEndpoint(_url)
 		e = circuitbreaker.Gobreaker(gobreaker.NewCircuitBreaker(gobreaker.Settings{}))(e)
-		e = ratelimit.NewErroringLimiter(rate.NewLimiter(rate.Every(3*time.Second), qps))(e)
+		e = ratelimit.NewErroringLimiter(rate.NewLimiter(rate.Every(time.Second), qps))(e)   // 每个instance进行错误限流？
+		e = ratelimit.NewDelayingLimiter(rate.NewLimiter(rate.Every(time.Second*5), qps))(e) // 每个instance进行延迟限流
+		// e = NewTokenBucketLimitterWithJuju(jujuratelimit.NewBucket(time.Second, int64(qps)))(e)
+
 		endpointer = append(endpointer, e)
 	}
 
@@ -54,4 +65,44 @@ func TestRetryMiddleware() model.Middleware {
 		// Endpoint
 		return retry
 	}
+}
+
+var ErrLimitExceed = errors.New("rate limit exceed")
+
+//NewTokenBucketLimitterWithJuju 使用juju/ratelimit创建限流中间件
+func NewTokenBucketLimitterWithJuju(bkt *jujuratelimit.Bucket) endpoint.Middleware {
+	return func(next endpoint.Endpoint) endpoint.Endpoint {
+		return func(ctx context.Context, request interface{}) (response interface{}, err error) {
+			if bkt.TakeAvailable(1) == 0 {
+				return nil, ErrLimitExceed
+			}
+			return next(ctx, request)
+		}
+	}
+}
+
+func MakeTestEndpoint(test service.Test) endpoint.Endpoint {
+	return func(ctx context.Context, request interface{}) (interface{}, error) {
+		v, err := test(request.(model.Request))
+		if err != nil {
+			return model.Response{V: v, Err: err.Error()}, nil
+		}
+		return model.Response{V: "test", Err: ""}, nil
+	}
+}
+
+func MakeTestProxyEndpoint(url *url.URL) endpoint.Endpoint {
+	return httptransport.NewClient(
+		"GET",
+		url,
+		func(_ context.Context, req *http.Request, _ interface{}) error {
+			return nil
+		},
+		func(_ context.Context, resp *http.Response) (response interface{}, err error) {
+			bodyBytes, err := ioutil.ReadAll(resp.Body)
+			utils.ErrorIf(err)
+			bodyString := string(bodyBytes)
+			return bodyString, nil
+		},
+	).Endpoint()
 }

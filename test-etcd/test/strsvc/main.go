@@ -17,8 +17,12 @@ import (
 	"test-etcd/test/strsvc/util"
 )
 
-// Transports expose the service to the network. In this first example we utilize JSON over HTTP.
 func main() {
+	Test()
+}
+
+// Transports expose the service to the network. In this first example we utilize JSON over HTTP.
+func Test() {
 	logger := log.NewLogfmtLogger(os.Stderr)
 
 	var svc service.IStringService
