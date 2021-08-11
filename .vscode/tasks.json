@@ -1,0 +1,73 @@
+{
+    "tasks": [
+        {
+            "type": "cppbuild",
+            "label": "C/C++: g++.exe 生成活动文件",
+            "command": "D:\\msys64\\mingw64\\bin\\g++.exe",
+            "args": [
+                "-g",
+                "*.cpp",
+                "-o",
+                "${fileDirname}\\${fileBasenameNoExtension}.exe",
+                "-ID:/msys64/mingw64/bin/../include/gtk-4.0",
+                "-ID:/msys64/mingw64/bin/../include/pango-1.0",
+                "-ID:/msys64/mingw64/bin/../include",
+                "-ID:/msys64/mingw64/bin/../include/glib-2.0",
+                "-ID:/msys64/mingw64/bin/../lib/glib-2.0/include",
+                "-ID:/msys64/mingw64/bin/../include/harfbuzz",
+                "-ID:/msys64/mingw64/bin/../include/freetype2",
+                "-ID:/msys64/mingw64/bin/../include/libpng16",
+                "-mms-bitfields",
+                "-ID:/msys64/mingw64/bin/../include/fribidi",
+                "-ID:/msys64/mingw64/bin/../include/cairo",
+                "-ID:/msys64/mingw64/bin/../include/lzo",
+                "-ID:/msys64/mingw64/bin/../include/pixman-1",
+                "-mms-bitfields",
+                "-mms-bitfields",
+                "-mms-bitfields",
+                "-mms-bitfields",
+                "-mms-bitfields",
+                "-mms-bitfields",
+                "-mms-bitfields",
+                "-ID:/msys64/mingw64/bin/../include/gdk-pixbuf-2.0",
+                "-mms-bitfields",
+                "-mms-bitfields",
+                "-ID:/msys64/mingw64/bin/../include/graphene-1.0",
+                "-ID:/msys64/mingw64/bin/../lib/graphene-1.0/include",
+                "-mfpmath=sse",
+                "-msse",
+                "-msse2",
+                "-pthread",
+                "-mms-bitfields",
+                "-mms-bitfields",
+                "-LD:/msys64/mingw64/bin/../lib",
+                "-lgtk-4",
+                "-lpangowin32-1.0",
+                "-lpangocairo-1.0",
+                "-lpango-1.0",
+                "-lharfbuzz",
+                "-lgdk_pixbuf-2.0",
+                "-lcairo-gobject",
+                "-lcairo",
+                "-lvulkan",
+                "-lgraphene-1.0",
+                "-lgio-2.0",
+                "-lgobject-2.0",
+                "-lglib-2.0",
+                "-lintl"
+            ],
+            "options": {
+                "cwd": "${fileDirname}"
+            },
+            "problemMatcher": [
+                "$gcc"
+            ],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "detail": "调试器生成的任务。"
+        }
+    ],
+    "version": "2.0.0"
+}
