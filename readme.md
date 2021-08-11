@@ -6,3 +6,4 @@ go build
 go build -ldflags="-H windowsgui" <b># To get rid of the cmd window, instead run</b></code>
 </pre>
  
+# [Makefile of hello](https://www3.ntu.edu.sg/home/ehchua/programming/cpp/gcc_make.html) 
