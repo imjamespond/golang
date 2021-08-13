@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"strings"
 	"testing"
 
@@ -72,5 +73,8 @@ func (mw *MyMainWindow) openAction_Triggered() error {
 	} else if !ok {
 		return nil
 	}
+
+	fmt.Println(dlg.FilePath)
+
 	return nil
 }
