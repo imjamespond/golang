@@ -1,0 +1,1 @@
+``go test -v -timeout 3600s -run ^TestWatcher$ test-etcd/test``

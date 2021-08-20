@@ -3,9 +3,9 @@ package test
 import (
 	"context"
 	"fmt"
-	"log"
 	"sync"
 	"testing"
+	"utils"
 
 	clientv3 "go.etcd.io/etcd/client/v3"
 )
@@ -15,7 +15,7 @@ var wg sync.WaitGroup
 func TestWatcher(t *testing.T) {
 	wg.Add(2)
 
-	watchingKey := "foo"
+	watchingKey := "/mydir/"
 	// 模拟KV的变化
 	// go func() {
 	// 	for {
@@ -26,20 +26,15 @@ func TestWatcher(t *testing.T) {
 	// }()
 
 	watch := func(num int) {
-		cli, err := clientv3.New(clientv3.Config{
-			Endpoints:   []string{Hosts},
-			DialTimeout: dialTimeout,
-		})
-		if err != nil {
-			log.Fatal(err)
-		}
+		cli, err := GetClient()
+		utils.FatalIf(err)
 		defer cli.Close()
 
-		rch := cli.Watch(context.Background(), watchingKey)
+		rch := cli.Watch(context.Background(), watchingKey, clientv3.WithPrefix())
 		fmt.Println("blocked...")
 		for wresp := range rch {
 			for _, ev := range wresp.Events {
-				fmt.Printf("%d: %s %q : %q\n", num, ev.Type, ev.Kv.Key, ev.Kv.Value)
+				fmt.Printf("%d: %s %q : %q, %d, %d\n", num, ev.Type, ev.Kv.Key, ev.Kv.Value, ev.Kv.ModRevision, ev.Kv.Version)
 			}
 		}
 		wg.Done()

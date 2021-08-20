@@ -7,17 +7,12 @@ import (
 	"utils"
 
 	"test-etcd/common"
-
-	clientv3 "go.etcd.io/etcd/client/v3"
 )
 
 func Test1(t *testing.T) {
-	cli, err := clientv3.New(clientv3.Config{
-		Endpoints:   []string{Hosts},
-		DialTimeout: dialTimeout,
-	})
-
-	utils.PanicIf(err)
+	cli, err := GetClient()
+	utils.FatalIf(err)
+	defer cli.Close()
 
 	ctx, cancel := context.WithTimeout(context.Background(), requestTimeout)
 	resp, err := cli.Put(ctx, "sample_key", "sample_value")
@@ -25,6 +20,4 @@ func Test1(t *testing.T) {
 	log.Println(resp)
 
 	common.HandleErr(err)
-
-	defer cli.Close()
 }
