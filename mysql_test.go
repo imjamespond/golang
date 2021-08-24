@@ -53,7 +53,9 @@ func TestMysqlQuery(t *testing.T) {
 	utils.Log(users)
 
 	db.Limit(3).Where("age > ?", 18).Order("age asc").Find(&users)
-	utils.Log(users)
+	for _, user := range users {
+		log.Println(user.Name, user.Age, utils.Date(user.Birthday), utils.Date(&user.CreatedAt), utils.Date(&user.UpdatedAt))
+	}
 }
 
 func TestMysqlDel(t *testing.T) {
@@ -74,4 +76,18 @@ func TestMysqlUpdate(t *testing.T) {
 	log.Println(rs.RowsAffected)
 	user.UpdatedAt = time.Now()
 	db.Save(user)
+}
+
+func TestMysqlModel(t *testing.T) {
+	var rs *gorm.DB
+	db := GetDB()
+	user := model.User{ID: 1}
+	// Update single column
+	rs = db.Model(&user).Update("UpdatedAt", time.Now())
+	utils.FatalIf(rs.Error)
+	log.Println(rs.RowsAffected)
+
+	rs = db.Model(&model.User{}).Where("name = ?", "Jinzhu").Update("age", rand.Intn(100))
+	utils.FatalIf(rs.Error)
+	log.Println(rs.RowsAffected)
 }
