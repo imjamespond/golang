@@ -2,6 +2,7 @@ package utils
 
 import (
 	"bufio"
+	"encoding/json"
 	"fmt"
 	"io"
 	"log"
@@ -22,10 +23,18 @@ func FatalIf(err error) {
 	}
 }
 
-func ErrorIf(err error) {
+func ErrorIf(err error) bool {
 	if err != nil {
 		log.Print(err)
+		return true
 	}
+	return false
+}
+
+func Log(data interface{}) {
+	bytes, err := json.Marshal(data)
+	ErrorIf(err)
+	log.Println(string(bytes))
 }
 
 func ExecCmd(command string) string {
