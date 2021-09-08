@@ -1,13 +1,16 @@
 package main
 
 import (
+	cc_utils "codechiev/utils"
 	"fmt"
 	"io"
 	"log"
 	"math/rand"
+	"net"
 	"net/http"
 	"os"
 	"strconv"
+	"test-go1/utils"
 	"time"
 )
 
@@ -26,7 +29,10 @@ func main() {
 	}
 
 	h1 := func(w http.ResponseWriter, _ *http.Request) {
-		io.WriteString(w, fmt.Sprintf("Hello from #%d\n", num))
+		conn, err := net.Dial("tcp", "bing.com:80")
+		cc_utils.FatalIf(err)
+		ip := utils.Ip(conn)
+		io.WriteString(w, fmt.Sprintf("%d Hello from #%s\n", num, ip.String()))
 	}
 
 	http.HandleFunc("/", h1)
