@@ -2,11 +2,11 @@ package main
 
 import (
 	cc_utils "codechiev/utils"
+	"encoding/json"
 	"fmt"
 	"io"
 	"log"
 	"math/rand"
-	"net"
 	"net/http"
 	"os"
 	"strconv"
@@ -29,13 +29,25 @@ func main() {
 	}
 
 	h1 := func(w http.ResponseWriter, _ *http.Request) {
-		conn, err := net.Dial("tcp", "bing.com:80")
+		// conn, err := net.Dial("tcp", "bing.com:80")
+		// cc_utils.FatalIf(err)
+		// ip := utils.Ip(conn)
+		before := time.Now()
+		resp, err := http.Get("http://testgo-svc.default.svc.cluster.local:8080/ip")
 		cc_utils.FatalIf(err)
-		ip := utils.Ip(conn)
-		io.WriteString(w, fmt.Sprintf("%d Hello from #%s\n", num, ip.String()))
+		body, err := io.ReadAll(resp.Body)
+		cc_utils.FatalIf(err)
+		io.WriteString(w, fmt.Sprintf("%d, cost %d millis, Hello from %s\n", num, time.Since(before).Milliseconds(), string(body)))
+	}
+
+	h2 := func(w http.ResponseWriter, _ *http.Request) {
+		ips := utils.IpList()
+		data, _ := json.Marshal(ips)
+		io.WriteString(w, string(data))
 	}
 
 	http.HandleFunc("/", h1)
+	http.HandleFunc("/ip", h2)
 
 	log.Fatal(http.ListenAndServe(":8080", nil))
 }

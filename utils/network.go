@@ -2,14 +2,14 @@ package utils
 
 import (
 	"codechiev/utils"
-	"fmt"
 	"net"
 )
 
-func IpList() {
+func IpList() []*net.IP {
 	ifaces, err := net.Interfaces()
 	utils.FatalIf(err)
-	// handle err
+
+	ips := make([]*net.IP, 0)
 	for _, i := range ifaces {
 		addrs, err := i.Addrs()
 		utils.FatalIf(err)
@@ -23,9 +23,11 @@ func IpList() {
 				ip = v.IP
 			}
 			// process IP address
-			fmt.Println(ip)
+			// fmt.Println(ip)
+			ips = append(ips, &ip)
 		}
 	}
+	return ips
 }
 
 // Get preferred outbound ip of this machine
