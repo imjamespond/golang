@@ -1,10 +1,12 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 	"log"
 	"math/rand"
 	"strconv"
+	"sync"
 	"testing"
 	"time"
 
@@ -17,6 +19,8 @@ import (
 )
 
 var GetMysqlDB func() *gorm.DB = mysqlCfg.GetDB
+
+type User = model.User
 
 func init() {
 	unixnano := time.Now().UnixNano()
@@ -95,4 +99,46 @@ func TestMysqlModel(t *testing.T) {
 	rs = db.Model(&model.User{}).Where("name = ?", "Jinzhu").Update("age", rand.Intn(100))
 	utils.FatalIf(rs.Error)
 	log.Println(rs.RowsAffected)
+}
+
+func TestMysqlMaxConn(t *testing.T) {
+
+	wg := sync.WaitGroup{}
+	wg.Add(100)
+
+	for i := 0; i < 100; i++ {
+		go func(num int) {
+			db := GetMysqlDB()
+			err := db.Transaction(func(tx *gorm.DB) error {
+				fmt.Println("go routine", num)
+
+				// do some database operations in the transaction (use 'tx' from this point, not 'db')
+				if err := tx.Create(&User{Name: "Foo"}).Error; err != nil {
+					// return any error will rollback
+					return err
+				}
+
+				if err := tx.Create(&User{Name: "Bar"}).Error; err != nil {
+					return err
+				}
+
+				time.Sleep(time.Second * 10)
+				return errors.New("oops...")
+
+				// return nil will commit the whole transaction
+				// return nil
+			})
+			utils.ErrorIf(err)
+			wg.Done()
+		}(i)
+	}
+
+	wg.Wait()
+
+	db := GetMysqlDB()
+	users := []User{}
+	db.Where("name IN ?", []string{"Foo", "Bar"}).Find(&users)
+	utils.Log(users)
+	// GORM perform write (create/update/delete) operations run inside a transaction to ensure data consistency
+	db.Where("name IN ?", []string{"Foo", "Bar"}).Delete(&User{})
 }

@@ -14,3 +14,9 @@ https://github.com/xxjwxc/gormt
 https://github.com/smallnest/gen  
 https://github.com/volatiletech/sqlboiler  
  
+
+# Mysql 测试,配置
+```
+set global max_connections = 10;
+最大连接数
+```

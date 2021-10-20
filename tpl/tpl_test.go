@@ -16,7 +16,7 @@ func TestTpl(t *testing.T) {
 
 func TestModel(t *testing.T) {
 	db := mssqlCfg.GetDB()
-	var users = []model.Users{}
-	db.Find(&users)
+	var users = []model.Users1{}
+	db.Debug().Find(&users)
 	fmt.Println(users)
 }

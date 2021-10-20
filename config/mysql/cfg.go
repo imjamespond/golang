@@ -26,8 +26,13 @@ func init() {
 		DontSupportRenameColumn:   true,  // `change` when rename column, rename column not supported before MySQL 8, MariaDB
 		SkipInitializeWithVersion: false, // auto configure based on currently MySQL version
 	}), &gorm.Config{})
-
 	utils.PanicIf(err)
+
+	sqlDB, err := db.DB()
+	utils.PanicIf(err)
+
+	sqlDB.SetMaxIdleConns(2)
+	sqlDB.SetMaxOpenConns(4)
 
 	_db = db
 }
