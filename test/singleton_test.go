@@ -26,6 +26,7 @@ func instance() *Foo {
 	once.Do(func() {
 		rand.Seed(time.Now().UnixNano())
 		foo = &Foo{bar: rand.Int()}
+		time.Sleep(3 * time.Second)
 	})
 	return foo
 }
