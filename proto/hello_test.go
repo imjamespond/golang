@@ -3,6 +3,7 @@ package test
 import (
 	"context"
 	"log"
+	"strings"
 	"testing"
 	"time"
 
@@ -17,6 +18,13 @@ const (
 )
 
 func TestHello(t *testing.T) {
+	dir := "../java/target/"
+	_, exec := utils.ExecCmdDir(strings.Join([]string{"java", "--version"}, " "), &dir)
+	go func() {
+		exec(func(str string) {
+			log.Println(str)
+		})
+	}()
 	RunClient()("Foobar")
 }
 

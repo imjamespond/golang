@@ -6,13 +6,13 @@ import io.grpc.stub.StreamObserver;
 
 import java.io.IOException;
 import java.util.concurrent.TimeUnit;
-import java.util.logging.Logger;
+//import java.util.logging.Logger;
 
 import sd.proto.Hello.*;
 import sd.proto.GreeterGrpc;
 
 public class App {
-    private static final Logger logger = Logger.getLogger(App.class.getName());
+//    private static final Logger logger = Logger.getLogger(App.class.getName());
 
     private Server server;
 
@@ -24,7 +24,7 @@ public class App {
                 .addService(new GreeterImpl())
                 .build()
                 .start();
-        logger.info("Server started, listening on " + port);
+        System.out.println("Server started, listening on " + port); // catched by parent process
         Runtime.getRuntime().addShutdownHook(new Thread() {
             @Override
             public void run() {
