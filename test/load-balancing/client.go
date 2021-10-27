@@ -13,6 +13,7 @@ import (
 )
 
 func init() {
+	log.Println("resolver Register")
 	resolver.Register(&TestResolverBuilder{})
 }
 

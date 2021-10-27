@@ -11,7 +11,7 @@ import (
 )
 
 var (
-	addrs = []string{":50051", ":50052"}
+	Addrs = []string{":50051", ":50052"}
 )
 
 type Server struct {
@@ -38,7 +38,7 @@ func startServer(addr string) {
 
 func StartServer() {
 	var wg sync.WaitGroup
-	for _, addr := range addrs {
+	for _, addr := range Addrs {
 		wg.Add(1)
 		go func(addr string) {
 			defer wg.Done()
