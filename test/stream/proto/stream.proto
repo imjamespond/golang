@@ -1,0 +1,18 @@
+syntax = "proto3";
+
+option go_package = "test-grpc/test/stream/proto";
+
+service StreamTest {
+  rpc GetData(Point) returns (stream Response) {}
+  rpc SendNGetData(stream Point) returns (stream Response) {} //Bidirectional streaming RPC
+}
+
+message Point {
+  int32 x = 1;
+  int32 y = 2;
+}
+
+message Response {
+  string name = 1;
+  Point location = 2;
+}
