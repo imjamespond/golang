@@ -8,17 +8,15 @@ import (
 )
 
 type Config struct {
-	Bash  string
-	Proxy string
+	Bash     string
+	Proxy    string
+	Curl     string
+	Interval int
 }
 
 const cfgYaml = ".config.yaml"
 
 var cfg = Config{}
-
-func init() {
-	ReadCfg()
-}
 
 func GetCfg() *Config {
 	return &cfg
@@ -45,4 +43,6 @@ func WriteCfg() {
 	}
 	log.Println(string(yamlData))
 	os.WriteFile(cfgYaml, yamlData, 0611)
+
+	ReadCfg()
 }
