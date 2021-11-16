@@ -2,3 +2,4 @@ rsrc.syso
 .config.yaml
 .DS_*
 trace.txt
+*.exe
