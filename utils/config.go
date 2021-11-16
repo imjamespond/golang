@@ -22,7 +22,29 @@ func GetCfg() *Config {
 	return &cfg
 }
 
+func isExist(path string) bool {
+	info, err := os.Stat(path)
+	if err != nil {
+		if os.IsExist(err) {
+			return true
+		}
+		if os.IsNotExist(err) {
+			return false
+		}
+		return false
+	}
+	return !info.IsDir()
+}
+
 func ReadCfg() {
+	if !isExist(cfgYaml) {
+		cfg, err := os.Create(cfgYaml)
+		if err != nil {
+			log.Fatal(err)
+		}
+		cfg.Close()
+	}
+
 	cfgData, err := os.ReadFile(cfgYaml)
 	if err != nil {
 		log.Println(err)
@@ -43,6 +65,4 @@ func WriteCfg() {
 	}
 	log.Println(string(yamlData))
 	os.WriteFile(cfgYaml, yamlData, 0611)
-
-	ReadCfg()
 }

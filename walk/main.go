@@ -2,6 +2,7 @@ package main
 
 import (
 	"auto-curl/utils"
+	"fmt"
 	"io"
 	"log"
 	"os"
@@ -51,6 +52,8 @@ func main() {
 
 	var runningTicker *time.Ticker
 
+	var count int
+
 	cfg := utils.GetCfg()
 
 	mw := new(MyMainWindow)
@@ -64,13 +67,13 @@ func main() {
 		Children: []declarative.Widget{
 			declarative.HSplitter{
 				Children: []declarative.Widget{
-					declarative.TextEdit{AssignTo: &inTE},
-					declarative.TextEdit{AssignTo: &outTE, ReadOnly: true},
+					declarative.TextEdit{AssignTo: &inTE, VScroll: true},
+					declarative.TextEdit{AssignTo: &outTE, VScroll: true, ReadOnly: true},
 				},
 			},
 
 			declarative.Composite{
-				Layout: declarative.Grid{Columns: 5},
+				Layout: declarative.Grid{Columns: 6},
 				Children: []declarative.Widget{
 					Label{
 						Text: "Proxy:",
@@ -110,7 +113,17 @@ func main() {
 						},
 					},
 					PushButton{
-						// MaxSize: Size{Width: 100},
+						Text:    "Paste",
+						MaxSize: Size{Width: 100},
+						OnClicked: func() {
+							if text, err := walk.Clipboard().Text(); err != nil {
+								log.Print("Paste: ", err)
+							} else {
+								inTE.SetText(text)
+							}
+						},
+					},
+					PushButton{
 						Text:    "Config Bash",
 						MaxSize: Size{Width: 100},
 						OnClicked: func() {
@@ -133,19 +146,25 @@ func main() {
 					} else {
 						request := inTE.Text()
 						reqFunc := func() {
+							count++
 							if len(cfg.Bash) == 0 {
-								// dialog.NewError(fmt.Errorf("please set bash location"), win).Show()
+								rs := walk.MsgBox(mw, "Error", "please set bash location", walk.MsgBoxOKCancel)
+								fmt.Println(rs)
 							} else if len(request) > 0 && strings.Index(request, "curl") == 0 {
+								now := time.Now()
 								status.SetText("请求中...")
+								running.SetText(fmt.Sprintf("运行中...%d", count))
 								response := utils.Curl(cfg.Bash, request)
 								outTE.SetText(response)
 								Trace.Println(response)
-								status.SetText("请求完成!")
+								status.SetText(fmt.Sprintf("请求完成! %vms\n", time.Since(now).Milliseconds()))
 							}
 						}
+
+						count = 0
+
 						if cfg.Interval > 0 {
-							runningTicker = start(int64(cfg.Interval), reqFunc)
-							running.SetText("运行中...")
+							runningTicker = utils.StartTicker(int64(cfg.Interval), reqFunc)
 						} else {
 							reqFunc()
 						}
@@ -158,10 +177,12 @@ func main() {
 			{
 				AssignTo: &status,
 				Text:     "",
+				Width:    200,
 			},
 			{
 				AssignTo: &running,
 				Text:     "",
+				Width:    200,
 			},
 			{
 				AssignTo: &bash,
@@ -174,16 +195,4 @@ func main() {
 
 func getBash(path string) string {
 	return "bash: " + path
-}
-
-// time.After 例子
-func start(seconds int64, do func()) *time.Ticker {
-	ticker := time.NewTicker(time.Second * time.Duration(seconds))
-	go func(t *time.Ticker) {
-		do()
-		for range t.C {
-			do()
-		}
-	}(ticker)
-	return ticker
 }
