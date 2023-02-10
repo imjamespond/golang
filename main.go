@@ -8,6 +8,7 @@ import (
 )
 
 func main() {
+	host := flag.String("h", "127.0.0.1", "host to listen")
 	port := flag.String("p", "3000", "port to serve on")
 	directory := flag.String("d", ".", "the directory of static file to host")
 	flag.Parse()
@@ -17,7 +18,7 @@ func main() {
 	http.Handle("/statics/", http.StripPrefix(strings.TrimRight("/statics/", "/"), fileServer))
 
 	log.Printf("Serving %s on HTTP port: %s\n", *directory, *port)
-	log.Fatal(http.ListenAndServe(":"+*port, nil))
+	log.Fatal(http.ListenAndServe(*host+":"+*port, nil))
 
 }
 
