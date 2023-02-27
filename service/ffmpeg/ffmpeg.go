@@ -69,8 +69,10 @@ func (self *Service) Start() {
 
 						setCmd(cmd)
 						exec(func(str string) {
-							fmt.Println("scan", str)
-							setLog(&str)
+							if strings.Index(str, "out_time=") == 0 {
+								fmt.Println("scan", str)
+								setLog(&str)
+							}
 						})
 						setCmd(nil)
 						fmt.Println("done", *job)
