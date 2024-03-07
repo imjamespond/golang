@@ -1,0 +1,1 @@
+wails build -clean -devtools -platform darwin/arm64
