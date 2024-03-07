@@ -1,7 +1,7 @@
 import "./App.css";
 import { Curl, Save, GetTpl } from "../wailsjs/go/main/App";
 import { useRef, useState } from "react";
-import { LogDebug, LogError } from "../wailsjs/runtime";
+import { LogDebug, LogError, ClipboardGetText } from "../wailsjs/runtime";
 import { objectEntries } from "./utils";
 import { useAlert } from "./Helper";
 
@@ -41,6 +41,15 @@ function App() {
           }}
         >
           Curl
+        </button>
+        &nbsp;
+        <button
+          onClick={async () => {
+            const json = await ClipboardGetText();
+            setSwagger(json);
+          }}
+        >
+          Paste
         </button>
         &nbsp;
         <button
@@ -131,7 +140,7 @@ async function format(val: string): Promise<Result> {
   return ["", "", "", ""];
 }
 
-function formatSummary(swg: Swagger.RootObject) {
+function formatSummary(swg: Swagger.Root) {
   const pathsMap: { [k: string]: string[] } = {};
   for (const pathKey in swg.paths) {
     const superName = pathKey.substring(0, pathKey.indexOf("/", 2));
@@ -159,7 +168,7 @@ interface PathItem {
   pathKey: string;
 }
 
-async function formatInfs(swg: Swagger.RootObject) {
+async function formatInfs(swg: Swagger.Root) {
   const getInfTpl = await GetTpl("get.inf.tpl");
   const getFunTpl = await GetTpl("get.fun.tpl");
   const postInfTpl = await GetTpl("post.inf.tpl");
@@ -237,35 +246,36 @@ async function formatInfs(swg: Swagger.RootObject) {
 
 interface Inf {
   name: string;
-  props: Prop[];
+  props: string;
 }
-interface Prop {
-  propName: string;
-  propType: string;
-}
-function formatDefs(swg: Swagger.RootObject) {
+
+function formatDefs(swg: Swagger.Root) {
   const infList: Inf[] = [];
   for (const defKey in swg.definitions) {
     // console.debug(`formatDefs: ${defKey}`);
     const defItem = swg.definitions[defKey];
-    const props: Prop[] = [];
-    infList.push({ name: defKey, props });
-    if (defItem.properties) {
-      objectEntries(defItem.properties).forEach(([propName, prop]) => {
-        props.push({ propName, propType: getType(prop) });
+    const name = getDefName(defKey);
+    if ("properties" in defItem) {
+      const props = objectEntries(defItem.properties).reduce(
+        (prev, [propName, prop]) => {
+          return prev + `  ${propName}: ${getType(prop)}\n`;
+        },
+        ""
+      );
+      infList.push({ name, props });
+    } else if ("additionalProperties" in defItem) {
+      // def is map type
+      infList.push({
+        name,
+        props: `  [k:string]: ${getType(defItem.additionalProperties)}\n`,
       });
     } else {
-      LogDebug(`properties is null: ${defKey}`);
+      LogDebug(`unknown definition: ${defKey}`);
     }
   }
   let defs = "";
   infList.forEach((inf) => {
-    const def =
-      `interface ${inf.name} {\n` +
-      inf.props.reduce((prev, curProp) => {
-        return prev + `  ${curProp.propName}: ${curProp.propType}\n`;
-      }, "") +
-      "}\n";
+    const def = `interface ${inf.name} {\n` + inf.props + "}\n";
     defs += def;
   });
   return defs;
@@ -294,6 +304,8 @@ function getType(prop?: Swagger.Query | Swagger.Schema | Swagger.Property) {
     } else if ("type" in prop) {
       if (prop.type === "array") {
         return fromArrayItems(prop.items);
+      } else if (prop.type === "object" && "additionalProperties" in prop) {
+        return fromObject(prop);
       } else {
         return fromRawType(prop.type);
       }
@@ -312,20 +324,73 @@ function getType(prop?: Swagger.Query | Swagger.Schema | Swagger.Property) {
 //   return "type" in schema && (schema as Swagger.ArraySchema).type === "array";
 // }
 
+const reg = /Map«(\w+),([a-zA-Z]+)»/g;
+/**
+ * ref type
+ * @param val
+ * @returns
+ */
 function fromRefType(val: string) {
   const type = val.replace("#/definitions/", "");
-  if (type === "Map«string,object»") return "{[k:string]:object}";
-  return type;
+  if (isMapName(type)) {
+    const name = getMapName(type);
+    return `{[k:string]:${fromRawType(name as any)}}`;
+  }
+  return fromRawType(type as any);
 }
 
-function fromRawType(type: Swagger.RawType) {
+function isMapName(name: string) {
+  return name.startsWith("Map«");
+}
+
+function getMapName(name: string) {
+  reg.lastIndex = 0;
+  const matched = reg.exec(name);
+  if (matched?.length === 3) {
+    return `${matched[2]}Map`;
+  }
+  return "unknownMap";
+}
+
+function isPageName(name: string) {
+  return name.startsWith("Page«");
+}
+
+function getPageName(name: string) {
+  return name.replaceAll("«","").replaceAll("»","");
+}
+
+
+function getDefName(name: string) {
+  if (isMapName(name)) {
+    const _name = getMapName(name);
+    return `${_name}Map`;
+  }
+  if (isPageName(name)) {
+    return getPageName(name);
+  }
+  return name
+}
+
+function fromRawType(type: Swagger.RawType | "int" | "Integer") {
   switch (type) {
-    case "integer": {
+    case "int":
+    case "integer":
+    case "Integer": {
       return "number";
     }
     default: {
       return type;
     }
+  }
+}
+
+function fromObject(obj: Swagger.ObjectType | Swagger.ObjSchema) {
+  const prop = obj.additionalProperties;
+  if ("$ref" in prop) {
+    return fromRefType(prop.$ref);
+  } else {
+    return fromRawType(prop.type);
   }
 }
 

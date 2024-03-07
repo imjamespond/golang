@@ -2,7 +2,7 @@ declare namespace Swagger {
   type RawType = "boolean" | "string" | /*  "array" | */ "integer" | "object";
   type Method = "get" | "delete" | "post";
 
-  interface RootObject {
+  interface Root {
     swagger: string;
     info: Info;
     host: string;
@@ -41,7 +41,7 @@ declare namespace Swagger {
 
   interface ObjectType {
     type: "object";
-    additionalProperties: RefType | Type | AdditionalProperties;
+    additionalProperties: RefType | Type | TypeExt;
   }
 
   interface ArrayType {
@@ -57,7 +57,7 @@ declare namespace Swagger {
 
   type Schema = ObjSchema | RefSchema | ArraySchema;
 
-  interface AdditionalProperties extends Type {
+  interface TypeExt extends Type {
     format: string;
   }
 
@@ -104,10 +104,10 @@ declare namespace Swagger {
     }
   }
 
-  interface Definition {
+  type Definition = {
     type: string;
     properties: Properties;
-  }
+  } | ObjectType
 
   interface Properties {
     [name: string]: Property;
