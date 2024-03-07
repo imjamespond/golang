@@ -336,6 +336,9 @@ function fromRefType(val: string) {
     const name = getMapName(type);
     return `{[k:string]:${fromRawType(name as any)}}`;
   }
+  if (isPageName(type)) {
+    return getPageName(type);
+  }
   return fromRawType(type as any);
 }
 
