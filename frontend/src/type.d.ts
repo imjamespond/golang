@@ -49,7 +49,7 @@ declare namespace Swagger {
     items: Items;
   }
 
-  type Items = Type | RefType;
+  type Items = Type | RefType | ArrayType;
 
   interface RefSchema extends RefType {}
   interface ArraySchema extends ArrayType {}
@@ -72,9 +72,7 @@ declare namespace Swagger {
     type: RawType;
   }
 
-  interface ArrayQuery extends BaseQuery {
-    type: "array";
-    items: Items;
+  interface ArrayQuery extends BaseQuery, ArrayType {
     collectionFormat: string;
   }
 

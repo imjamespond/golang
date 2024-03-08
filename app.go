@@ -6,6 +6,7 @@ import (
 	goruntime "runtime"
 
 	"github.com/wailsapp/wails/v2/pkg/runtime"
+	// "github.com/atotto/clipboard"
 )
 
 // App struct
@@ -48,15 +49,17 @@ func (a *App) GetTpl(file string) string {
 }
 
 func (a *App) Paste() string {
-	str, err := runtime.ClipboardGetText(a.ctx)
+
+	content, err := runtime.ClipboardGetText(a.ctx)
+	// content, err := clipboard.ReadAll()
 	if nil == err {
 		if goruntime.GOOS == "darwin" {
-			data, err := GbkToUtf8([]byte(str))
+			data, err := GbkToUtf8([]byte(content))
 			if nil == err {
 				return string(data)
 			}
 		}
-		return str
+		return content
 	}
 	return ""
 }

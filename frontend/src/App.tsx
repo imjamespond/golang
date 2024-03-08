@@ -360,19 +360,17 @@ function isPageName(name: string) {
 }
 
 function getPageName(name: string) {
-  return name.replaceAll("«","").replaceAll("»","");
+  return name.replaceAll("«", "").replaceAll("»", "");
 }
-
 
 function getDefName(name: string) {
   if (isMapName(name)) {
-    const _name = getMapName(name);
-    return `${_name}Map`;
+    return getMapName(name); 
   }
   if (isPageName(name)) {
     return getPageName(name);
   }
-  return name
+  return name;
 }
 
 function fromRawType(type: Swagger.RawType | "int" | "Integer") {
@@ -397,10 +395,11 @@ function fromObject(obj: Swagger.ObjectType | Swagger.ObjSchema) {
   }
 }
 
-function fromArrayItems(items: Swagger.Items) {
+function fromArrayItems(items: Swagger.Items): string {
   if ("$ref" in items) {
     return fromRefType(items.$ref) + "[]";
-  } else {
-    return fromRawType(items.type) + "[]";
+  } else if (items.type === "array") {
+    return fromArrayItems(items.items) + "[]";
   }
+  return fromRawType(items.type) + "[]";
 }
