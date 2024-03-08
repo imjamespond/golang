@@ -1,13 +1,18 @@
 package main
 
 import (
+	"bytes"
 	"fmt"
+	"io"
 	"log"
 	"os"
 	"os/exec"
 	"path/filepath"
 	"runtime"
 	"strings"
+
+	"golang.org/x/text/encoding/simplifiedchinese"
+	"golang.org/x/text/transform"
 )
 
 func Curl(command string) string {
@@ -86,4 +91,22 @@ func Read(file string) *string {
 	str := string(data)
 
 	return &str
+}
+
+func PrintBytes(data []byte) {
+	fmt.Print(ToBytesString(data))
+}
+
+func ToBytesString(data []byte) string {
+	return fmt.Sprintf("%v\n", data)
+}
+
+func GbkToUtf8(data []byte) (b []byte, err error) {
+
+	r := transform.NewReader(bytes.NewReader(data), simplifiedchinese.GBK.NewDecoder())
+	b, err = io.ReadAll(r)
+	if err != nil {
+		return
+	}
+	return
 }

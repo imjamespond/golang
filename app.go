@@ -3,6 +3,9 @@ package main
 import (
 	"context"
 	"fmt"
+	goruntime "runtime"
+
+	"github.com/wailsapp/wails/v2/pkg/runtime"
 )
 
 // App struct
@@ -42,4 +45,18 @@ func (a *App) GetTpl(file string) string {
 		return ""
 	}
 	return *data
+}
+
+func (a *App) Paste() string {
+	str, err := runtime.ClipboardGetText(a.ctx)
+	if nil == err {
+		if goruntime.GOOS == "darwin" {
+			data, err := GbkToUtf8([]byte(str))
+			if nil == err {
+				return string(data)
+			}
+		}
+		return str
+	}
+	return ""
 }

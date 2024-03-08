@@ -1,5 +1,5 @@
 import "./App.css";
-import { Curl, Save, GetTpl } from "../wailsjs/go/main/App";
+import { Curl, Save, GetTpl, Paste } from "../wailsjs/go/main/App";
 import { useRef, useState } from "react";
 import { LogDebug, LogError, ClipboardGetText } from "../wailsjs/runtime";
 import { objectEntries } from "./utils";
@@ -45,7 +45,7 @@ function App() {
         &nbsp;
         <button
           onClick={async () => {
-            const json = await ClipboardGetText();
+            const json = await Paste();
             setSwagger(json);
           }}
         >

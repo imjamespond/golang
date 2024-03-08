@@ -60,3 +60,22 @@ func TestGenTpl(t *testing.T) {
 	},`
 	Save("post.fun.tpl", tpl)
 }
+
+func TestPrintBytes(t *testing.T) {
+	var val []byte
+
+	val = []byte{0, 1, 2, 3}
+	PrintBytes(val)
+
+	val = []byte("你好！")
+	PrintBytes(val)
+
+	val = []byte{0xc4, 0xe3, 0xba, 0xc3}
+	{
+		data, err := GbkToUtf8(val)
+		if err == nil {
+			fmt.Println(string(data))
+		}
+	}
+
+}
