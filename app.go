@@ -40,7 +40,7 @@ func (a *App) Save(infs string, funs string, defs string) {
 	Save("out.def.ts", defs)
 }
 
-func (a *App) GetTpl(file string) string {
+func (a *App) GetFile(file string) string {
 	data := Read(file)
 	if data == nil {
 		return ""

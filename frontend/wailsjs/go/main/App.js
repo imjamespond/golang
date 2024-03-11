@@ -6,8 +6,8 @@ export function Curl(arg1) {
   return window['go']['main']['App']['Curl'](arg1);
 }
 
-export function GetTpl(arg1) {
-  return window['go']['main']['App']['GetTpl'](arg1);
+export function GetFile(arg1) {
+  return window['go']['main']['App']['GetFile'](arg1);
 }
 
 export function Greet(arg1) {

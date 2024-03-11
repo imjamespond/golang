@@ -3,7 +3,7 @@
 
 export function Curl(arg1:string):Promise<string>;
 
-export function GetTpl(arg1:string):Promise<string>;
+export function GetFile(arg1:string):Promise<string>;
 
 export function Greet(arg1:string):Promise<string>;
 

@@ -1,5 +1,5 @@
 import "./App.css";
-import { Curl, Save, GetTpl, Paste } from "../wailsjs/go/main/App";
+import { Curl, Save, GetFile, Paste } from "../wailsjs/go/main/App";
 import { useRef, useState } from "react";
 import { LogDebug, LogError, ClipboardGetText } from "../wailsjs/runtime";
 import { objectEntries } from "./utils";
@@ -125,12 +125,18 @@ function App() {
 
 export default App;
 
+type Config = {
+  package: string;
+};
+
 async function format(val: string): Promise<Result> {
   if (val) {
     try {
       const swg = JSON.parse(val);
+      const config = await GetFile("config.json");
+      const cfg = config ? (JSON.parse(config) as Config) : undefined;
       const summary = formatSummary(swg);
-      const [infs, funcs] = await formatInfs(swg);
+      const [infs, funcs] = await formatInfs(swg, cfg);
       const defs = formatDefs(swg);
       return [summary, infs, funcs, defs];
     } catch (error) {
@@ -168,11 +174,11 @@ interface PathItem {
   pathKey: string;
 }
 
-async function formatInfs(swg: Swagger.Root) {
-  const getInfTpl = await GetTpl("get.inf.tpl");
-  const getFunTpl = await GetTpl("get.fun.tpl");
-  const postInfTpl = await GetTpl("post.inf.tpl");
-  const postFunTpl = await GetTpl("post.fun.tpl");
+async function formatInfs(swg: Swagger.Root, cfg: Config | undefined) {
+  const getInfTpl = await GetFile("get.inf.tpl");
+  const getFunTpl = await GetFile("get.fun.tpl");
+  const postInfTpl = await GetFile("post.inf.tpl");
+  const postFunTpl = await GetFile("post.fun.tpl");
 
   const pathsMap: { [k: string]: PathItem[] } = {};
   for (const pathKey in swg.paths) {
@@ -184,9 +190,9 @@ async function formatInfs(swg: Swagger.Root) {
     console.debug(`formatInfs: ${superName}`);
     const paths = (pathsMap[superName] ??= []);
     objectEntries(item).forEach(([method, pathItem]) => {
-      const params = getParams(pathItem.parameters ?? []);
-      const body = getBody(pathItem.parameters ?? []);
-      const resp = getType(pathItem.responses["200"].schema);
+      const params = getParams(pathItem.parameters ?? [], cfg);
+      const body = getBody(pathItem.parameters ?? [], cfg);
+      const resp = getType(pathItem.responses["200"].schema, cfg);
       const name = /* pathName.length < 10 ? pathItem.operationId : */ pathName;
       paths.push({ params, body, resp, name, pathItem, method, pathKey });
     });
@@ -258,7 +264,7 @@ function formatDefs(swg: Swagger.Root) {
     if ("properties" in defItem) {
       const props = objectEntries(defItem.properties).reduce(
         (prev, [propName, prop]) => {
-          return prev + `  ${propName}: ${getType(prop)}\n`;
+          return prev + `  ${propName}: ${getType(prop, undefined)}\n`;
         },
         ""
       );
@@ -267,7 +273,10 @@ function formatDefs(swg: Swagger.Root) {
       // def is map type
       infList.push({
         name,
-        props: `  [k:string]: ${getType(defItem.additionalProperties)}\n`,
+        props: `  [k:string]: ${getType(
+          defItem.additionalProperties,
+          undefined
+        )}\n`,
       });
     } else {
       LogDebug(`unknown definition: ${defKey}`);
@@ -281,33 +290,36 @@ function formatDefs(swg: Swagger.Root) {
   return defs;
 }
 
-function getParams(params: Swagger.Parameter[]) {
+function getParams(params: Swagger.Parameter[], cfg: Config | undefined) {
   return (params as Swagger.Query[])
     .filter((p) => p.in === "query")
     .map((p) => {
-      return `${p.name}${p.required ? "" : "?"}:${getType(p)}`;
+      return `${p.name}${p.required ? "" : "?"}:${getType(p, cfg)}`;
     });
 }
 
-function getBody(params: Swagger.Parameter[]) {
+function getBody(params: Swagger.Parameter[], cfg: Config | undefined) {
   return (params as Swagger.Body[])
     .filter((p) => p.in === "body")
     .map((p) => {
-      return `${getType(p.schema)}`;
+      return `${getType(p.schema, cfg)}`;
     });
 }
 
-function getType(prop?: Swagger.Query | Swagger.Schema | Swagger.Property) {
+function getType(
+  prop: Swagger.Query | Swagger.Schema | Swagger.Property | undefined,
+  cfg: Config | undefined
+) {
   if (prop) {
     if ("$ref" in prop) {
-      return fromRefType(prop.$ref);
+      return fromRefType(prop.$ref, cfg);
     } else if ("type" in prop) {
       if (prop.type === "array") {
-        return fromArrayItems(prop.items);
+        return fromArrayItems(prop.items, cfg);
       } else if (prop.type === "object" && "additionalProperties" in prop) {
-        return fromObject(prop);
+        return fromObject(prop, cfg);
       } else {
-        return fromRawType(prop.type);
+        return fromRawType(prop.type, cfg);
       }
     }
   }
@@ -330,16 +342,16 @@ const reg = /Map«(\w+),([a-zA-Z]+)»/g;
  * @param val
  * @returns
  */
-function fromRefType(val: string) {
+function fromRefType(val: string, cfg: Config | undefined) {
   const type = val.replace("#/definitions/", "");
   if (isMapName(type)) {
     const name = getMapName(type);
-    return `{[k:string]:${fromRawType(name as any)}}`;
+    return `{[k:string]:${fromRawType(name as Swagger.RawType, cfg)}}`;
   }
   if (isPageName(type)) {
     return getPageName(type);
   }
-  return fromRawType(type as any);
+  return fromRawType(type as Swagger.RawType, cfg);
 }
 
 function isMapName(name: string) {
@@ -365,7 +377,7 @@ function getPageName(name: string) {
 
 function getDefName(name: string) {
   if (isMapName(name)) {
-    return getMapName(name); 
+    return getMapName(name);
   }
   if (isPageName(name)) {
     return getPageName(name);
@@ -373,33 +385,47 @@ function getDefName(name: string) {
   return name;
 }
 
-function fromRawType(type: Swagger.RawType | "int" | "Integer") {
+function fromRawType(
+  type: Swagger.RawType | "int" | "Integer",
+  cfg: Config | undefined
+) {
   switch (type) {
     case "int":
     case "integer":
     case "Integer": {
       return "number";
     }
+    case "object":
+    case "boolean":
+    case "string": {
+      return type;
+    }
     default: {
+      if (cfg?.package) {
+        return `${cfg.package}.${type}`;
+      }
       return type;
     }
   }
 }
 
-function fromObject(obj: Swagger.ObjectType | Swagger.ObjSchema) {
+function fromObject(
+  obj: Swagger.ObjectType | Swagger.ObjSchema,
+  cfg: Config | undefined
+) {
   const prop = obj.additionalProperties;
   if ("$ref" in prop) {
-    return fromRefType(prop.$ref);
+    return fromRefType(prop.$ref, cfg);
   } else {
-    return fromRawType(prop.type);
+    return fromRawType(prop.type, cfg);
   }
 }
 
-function fromArrayItems(items: Swagger.Items): string {
+function fromArrayItems(items: Swagger.Items, cfg: Config | undefined): string {
   if ("$ref" in items) {
-    return fromRefType(items.$ref) + "[]";
+    return fromRefType(items.$ref, cfg) + "[]";
   } else if (items.type === "array") {
-    return fromArrayItems(items.items) + "[]";
+    return fromArrayItems(items.items, cfg) + "[]";
   }
-  return fromRawType(items.type) + "[]";
+  return fromRawType(items.type, cfg) + "[]";
 }
