@@ -294,7 +294,7 @@ function getParams(params: Swagger.Parameter[], cfg: Config | undefined) {
   return (params as Swagger.Query[])
     .filter((p) => p.in === "query")
     .map((p) => {
-      return `${p.name}${p.required ? "" : "?"}:${getType(p, cfg)}`;
+      return `${p.name}${p.required ? "" : "?"}:${getType(p, cfg)} /* ${p.description} */`;
     });
 }
 
