@@ -20,11 +20,7 @@ function App() {
       <div className="flex">
         <div className="pr-2 w-50">
           swagger json: <br />
-          <textarea
-            className="content"
-            value={swagger}
-            onChange={(e) => setSwagger(e.target.value)}
-          ></textarea>
+          <textarea className="content" value={swagger} onChange={(e) => setSwagger(e.target.value)}></textarea>
         </div>
         <div className="w-50">
           output:
@@ -92,11 +88,7 @@ function App() {
 
       <dialog id="dlg-curl" ref={curlDlg} open={false}>
         curl: <br />
-        <textarea
-          rows={20}
-          value={curl}
-          onChange={(e) => setCurl(e.target.value)}
-        ></textarea>
+        <textarea rows={20} value={curl} onChange={(e) => setCurl(e.target.value)}></textarea>
         <div className="text-center mt-1">
           <form method="dialog" className="inline">
             <button
@@ -205,15 +197,9 @@ async function formatInfs(swg: Swagger.Root, cfg: Config | undefined) {
     const paths = pathsMap[superName];
     interfaces += `${superName}: {\n`;
     functions += `${superName}: {\n`;
-    for (const {
-      pathItem,
-      resp,
-      name,
-      params,
-      body,
-      method,
-      pathKey,
-    } of paths) {
+    for (const { pathItem, resp, name, params, body, method, pathKey } of paths) {
+      const paramsVal = params.length ? `{${params.join(",")}}` : "void";
+      const bodyVal = body.length ? body[0] : "void";
       const fromTpl = (tpl: string) => {
         return tpl
           .replaceAll("${pathItem.summary}", pathItem.summary)
@@ -221,8 +207,9 @@ async function formatInfs(swg: Swagger.Root, cfg: Config | undefined) {
           .replaceAll("${resp}", resp)
           .replaceAll("${method}", method)
           .replaceAll("${pathKey}", pathKey)
-          .replaceAll("${params}", params.join(","))
-          .replaceAll("${body}", body.join(","));
+          .replaceAll("${params}", paramsVal)
+          .replaceAll("${body}", bodyVal)
+          .replaceAll("${swg.basePath}", swg.basePath);
       };
       {
         /* 接口 */
@@ -232,7 +219,8 @@ async function formatInfs(swg: Swagger.Root, cfg: Config | undefined) {
         const fun = fromTpl(getFunTpl);
         functions += fun;
       }
-      if (body.length > 0) {
+      const m = method.toLowerCase();
+      if (body.length > 0 || m === "post" || m === "delete") {
         /* 接口 */
         const inf = fromTpl(postInfTpl);
         interfaces += inf;
@@ -262,21 +250,15 @@ function formatDefs(swg: Swagger.Root) {
     const defItem = swg.definitions[defKey];
     const name = getDefName(defKey);
     if ("properties" in defItem) {
-      const props = objectEntries(defItem.properties).reduce(
-        (prev, [propName, prop]) => {
-          return prev + `  ${propName}: ${getType(prop, undefined)}\n`;
-        },
-        ""
-      );
+      const props = objectEntries(defItem.properties).reduce((prev, [propName, prop]) => {
+        return prev + `  ${propName}: ${getType(prop, undefined)}\n`;
+      }, "");
       infList.push({ name, props });
     } else if ("additionalProperties" in defItem) {
       // def is map type
       infList.push({
         name,
-        props: `  [k:string]: ${getType(
-          defItem.additionalProperties,
-          undefined
-        )}\n`,
+        props: `  [k:string]: ${getType(defItem.additionalProperties, undefined)}\n`,
       });
     } else {
       LogDebug(`unknown definition: ${defKey}`);
@@ -306,10 +288,7 @@ function getBody(params: Swagger.Parameter[], cfg: Config | undefined) {
     });
 }
 
-function getType(
-  prop: Swagger.Query | Swagger.Schema | Swagger.Property | undefined,
-  cfg: Config | undefined
-) {
+function getType(prop: Swagger.Query | Swagger.Schema | Swagger.Property | undefined, cfg: Config | undefined) {
   if (prop) {
     if ("$ref" in prop) {
       return fromRefType(prop.$ref, cfg);
@@ -385,10 +364,7 @@ function getDefName(name: string) {
   return name;
 }
 
-function fromRawType(
-  type: Swagger.RawType | "int" | "Integer",
-  cfg: Config | undefined
-) {
+function fromRawType(type: Swagger.RawType | "int" | "Integer", cfg: Config | undefined) {
   switch (type) {
     case "int":
     case "integer":
@@ -409,10 +385,7 @@ function fromRawType(
   }
 }
 
-function fromObject(
-  obj: Swagger.ObjectType | Swagger.ObjSchema,
-  cfg: Config | undefined
-) {
+function fromObject(obj: Swagger.ObjectType | Swagger.ObjSchema, cfg: Config | undefined) {
   const prop = obj.additionalProperties;
   if ("$ref" in prop) {
     return fromRefType(prop.$ref, cfg);
