@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <title>API Docs</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/5.17.0/swagger-ui.min.css" integrity="sha512-...your-sha512..." crossorigin="anonymous" referrerpolicy="no-referrer" />
+</head>
+<body>
+    <div id="swagger-ui"></div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/5.17.0/swagger-ui-bundle.min.js" integrity="sha512...your-sha512..." crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script>
+        window.onload = function() {
+            window.ui = SwaggerUIBundle({
+                url: "./openapi.yaml", // 指向你自己的 OpenAPI 规范文件
+                dom_id: '#swagger-ui',
+            });
+        };
+    </script>
+</body>
+</html>
