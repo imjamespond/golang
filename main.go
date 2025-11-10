@@ -25,6 +25,7 @@ func main() {
 	// Create a file server for the embedded filesystem
 	http.Handle("/webrtc/", http.FileServer(http.FS(content)))
 
+	// A-> webrtc-> B-> http-> http-server-> 控制system  
 	http.HandleFunc("/api/mouse", utils.HandleMouse)
 	http.HandleFunc("/api/key", utils.HandleKey)
 
