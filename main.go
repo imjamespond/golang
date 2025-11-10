@@ -25,6 +25,9 @@ func main() {
 	// Create a file server for the embedded filesystem
 	http.Handle("/webrtc/", http.FileServer(http.FS(content)))
 
+	http.HandleFunc("/api/mouse", utils.HandleMouse)
+	http.HandleFunc("/api/key", utils.HandleKey)
+
 	// Start the HTTP server in a new goroutine
 	go func() {
 		log.Println("Serving WebRTC files from the embedded filesystem.")
