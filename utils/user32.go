@@ -24,6 +24,8 @@ var (
     user32         = syscall.NewLazyDLL("user32.dll")
     procMouseEvent = user32.NewProc("mouse_event")
     procKeybdEvent = user32.NewProc("keybd_event")
+		// TODO 建议使用 SendInput 替代 mouse_event 和 keybd_event 
+		// procSendInput = user32.NewProc("SendInput")
     procSetCursorPos = user32.NewProc("SetCursorPos")
 )
 
