@@ -14,6 +14,9 @@ import (
 
 // --- WinAPI 常量定义 ---
 const (
+		SM_CXSCREEN = 0 // 屏幕宽度
+		SM_CYSCREEN = 1 // 屏幕高度
+
     MOUSEEVENTF_MOVE       = 0x0001
     MOUSEEVENTF_LEFTDOWN   = 0x0002
     MOUSEEVENTF_LEFTUP     = 0x0004
@@ -27,6 +30,7 @@ var (
 		// TODO 建议使用 SendInput 替代 mouse_event 和 keybd_event 
 		// procSendInput = user32.NewProc("SendInput")
     procSetCursorPos = user32.NewProc("SetCursorPos")
+		getSystemMetricsProc = user32.NewProc("GetSystemMetrics")
 )
 
 
@@ -90,7 +94,20 @@ var vkMap = map[string]byte{
 }
 
 // --- 控制函数 ---
-func MouseMove(x, y int) {
+func MouseMove(xPercent, yPercent float64) {
+		screenW, screenH := getScreenSize()
+		x := int(float64(screenW) * xPercent)
+		y := int(float64(screenH) * yPercent)
+		if x < 0 {
+			x = 0
+		} else if x >= screenW {
+			x = screenW - 1
+		}
+		if y < 0 {
+			y = 0
+		} else if y >= screenH {
+			y = screenH - 1
+		}
     procSetCursorPos.Call(uintptr(x), uintptr(y))
 }
 
@@ -100,6 +117,11 @@ func MouseClick() {
     procMouseEvent.Call(uintptr(MOUSEEVENTF_LEFTUP), 0, 0, 0, 0)
 }
 
+func getScreenSize() (int, int) {
+	width, _, _ := getSystemMetricsProc.Call(SM_CXSCREEN)
+	height, _, _ := getSystemMetricsProc.Call(SM_CYSCREEN)
+	return int(width), int(height)
+}
 
 
 // --- HTTP handlers ---
@@ -108,8 +130,8 @@ func HandleMouse(w http.ResponseWriter, r *http.Request) {
     yStr := r.URL.Query().Get("y")
     t := r.URL.Query().Get("type")
 
-    x, _ := strconv.Atoi(xStr)
-    y, _ := strconv.Atoi(yStr)
+    x, _ := strconv.ParseFloat(xStr, 64)
+    y, _ := strconv.ParseFloat(yStr, 64)
 
     if t == "click" {
         if xStr != "" && yStr != "" {
